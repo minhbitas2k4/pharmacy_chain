@@ -5,6 +5,7 @@ import '../../../core/utils/validators.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../controllers/auth_controller.dart';
+import '../models/user_model.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({
@@ -14,7 +15,7 @@ class LoginForm extends StatefulWidget {
   });
 
   final AuthController controller;
-  final Future<void> Function() onLoginSuccess;
+  final Future<void> Function(UserModel user) onLoginSuccess;
 
   @override
   State<LoginForm> createState() => _LoginFormState();
@@ -48,7 +49,7 @@ class _LoginFormState extends State<LoginForm> {
     }
 
     if (user != null) {
-      await widget.onLoginSuccess();
+      await widget.onLoginSuccess(user);
     } else if (widget.controller.errorMessage != null) {
       ScaffoldMessenger.of(
         context,

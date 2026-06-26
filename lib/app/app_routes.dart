@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/constants/app_roles.dart';
+import '../features/auth/controllers/auth_controller.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../core/constants/app_strings.dart';
 import '../features/dashboard/screens/chain_dashboard_screen.dart';
@@ -24,6 +26,7 @@ import '../features/payment/screens/payment_screen.dart';
 import '../features/invoices/screens/invoice_screen.dart';
 import '../features/employees/screens/employee_profile_screen.dart';
 import '../features/schedules/screens/work_schedule_screen.dart';
+import '../features/home/screens/home_screen.dart';
 
 class AppRoutes {
   static const login = '/login';
@@ -57,9 +60,78 @@ class AppRoutes {
   static const employees = '/employees';
   static const workSchedule = '/work-schedule';
   static const schedules = '/schedules';
+  static const home = "/home";
+
+  /// Map roles to their permitted routes
+  static const Map<String, List<String>> rolePermissions = {
+    AppRoles.systemAdmin: [
+      systemConfig,
+      userPermissions,
+      auditLogs,
+      maintenanceNotice,
+      notifications,
+    ],
+    AppRoles.chainManager: [
+      chainDashboard,
+      pricingPolicy,
+      drugCatalog,
+      drugs,
+      warehouseAlert,
+      inventory,
+    ],
+    AppRoles.branchManager: [
+      branch,
+      branches,
+      inventoryReview,
+      shiftManagement,
+      shiftHandover,
+      shifts,
+    ],
+    AppRoles.purchasingManager: [
+      purchaseOrders,
+      suppliers,
+      payment,
+    ],
+    AppRoles.pharmacist: [
+      drugLookup,
+      pos,
+      drugs,
+    ],
+    AppRoles.cashier: [
+      pos,
+      payment,
+      invoice,
+      invoices,
+    ],
+    AppRoles.warehouseStaff: [
+      stockInOut,
+      inventory,
+    ],
+    AppRoles.hrAdmin: [
+      employeeProfile,
+      employees,
+      workSchedule,
+      schedules,
+      shiftManagement,
+    ],
+  };
+
+  static String getHomeRoute(String role) {
+    // If it's a manager role that has a dashboard, go there
+    if (role == AppRoles.chainManager) return chainDashboard;
+    // Otherwise, all roles go to the common Home/Hub screen which will be filtered
+    return home;
+  }
+
+  static bool hasAccess(String role, String route) {
+    if (route == login || route == home) return true;
+    final allowed = rolePermissions[role];
+    return allowed?.contains(route) ?? false;
+  }
 
   static Map<String, WidgetBuilder> get routes => <String, WidgetBuilder>{
     login: (_) => const LoginScreen(),
+    home: (_) => const HomeScreen(),
     dashboard: (_) => const ChainDashboardScreen(),
     chainDashboard: (_) => const ChainDashboardScreen(),
     purchaseOrders: (_) => const PurchaseOrderScreen(),
@@ -94,6 +166,18 @@ class AppRoutes {
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     final WidgetBuilder? builder = routes[settings.name];
+    
+    // Check access
+    if (settings.name != login && settings.name != null) {
+      final user = AuthController().currentUser;
+      if (user != null && !hasAccess(user.role, settings.name!)) {
+        return MaterialPageRoute<void>(
+          builder: (_) => _AccessDeniedScreen(routeName: settings.name!),
+          settings: settings,
+        );
+      }
+    }
+
     if (builder == null) {
       return MaterialPageRoute<void>(
         builder: (_) => const _StubScreen(title: AppStrings.appName),
@@ -101,6 +185,37 @@ class AppRoutes {
       );
     }
     return MaterialPageRoute<void>(builder: builder, settings: settings);
+  }
+}
+
+class _AccessDeniedScreen extends StatelessWidget {
+  final String routeName;
+  const _AccessDeniedScreen({required this.routeName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Truy cập bị từ chối')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.lock_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              'Bạn không có quyền truy cập vào chức năng này.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Quay lại'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

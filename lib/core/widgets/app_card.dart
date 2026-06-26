@@ -8,15 +8,17 @@ class AppCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.margin,
+    this.onTap,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry? margin;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final content = Container(
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
@@ -32,6 +34,16 @@ class AppCard extends StatelessWidget {
         ],
       ),
       child: child,
+    );
+
+    if (onTap == null) {
+      return content;
+    }
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: content,
     );
   }
 }

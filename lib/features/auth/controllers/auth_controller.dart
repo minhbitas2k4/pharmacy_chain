@@ -4,7 +4,10 @@ import '../models/user_model.dart';
 import '../services/auth_service.dart';
 
 class AuthController extends ChangeNotifier {
-  AuthController({AuthService? authService})
+  static final AuthController _instance = AuthController._internal();
+  factory AuthController() => _instance;
+
+  AuthController._internal({AuthService? authService})
     : _authService = authService ?? AuthService();
 
   final AuthService _authService;
@@ -48,7 +51,11 @@ class AuthController extends ChangeNotifier {
       notifyListeners();
     }
   }
-
+  Future<void> logout() async {
+    await _authService.logout();
+    _currentUser = null;
+    notifyListeners();
+  }
   void clearError() {
     if (_errorMessage == null) {
       return;

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../constants/app_colors.dart';
 import '../constants/app_strings.dart';
+import '../../features/auth/controllers/auth_controller.dart';
+import '../../app/app_routes.dart';
 
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   const AppHeader({
@@ -40,6 +42,19 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           onPressed: onNotificationsPressed,
           icon: const Icon(Icons.notifications_none_outlined),
+        ),
+        IconButton(
+          onPressed: () async {
+            await AuthController().logout();
+            if (context.mounted) {
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                AppRoutes.login,
+                (route) => false,
+              );
+            }
+          },
+          icon: const Icon(Icons.logout, color: Colors.redAccent),
         ),
       ],
     );

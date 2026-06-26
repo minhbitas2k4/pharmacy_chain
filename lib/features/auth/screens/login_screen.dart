@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-
+import '../../../core/constants/app_roles.dart';
 import '../../../app/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/widgets/app_card.dart';
 import '../controllers/auth_controller.dart';
 import '../widgets/login_form.dart';
+import '../models/user_model.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,17 +24,15 @@ class _LoginScreenState extends State<LoginScreen> {
     _authController = AuthController();
   }
 
-  @override
-  void dispose() {
-    _authController.dispose();
-    super.dispose();
-  }
+  Future<void> _onLoginSuccess(
+      UserModel user,
+      ) async {
 
-  Future<void> _onLoginSuccess() async {
-    if (!mounted) {
-      return;
-    }
-    Navigator.of(context).pushReplacementNamed(AppRoutes.chainDashboard);
+    final route = AppRoutes.getHomeRoute(user.role);
+    Navigator.pushReplacementNamed(
+      context,
+      route,
+    );
   }
 
   @override
