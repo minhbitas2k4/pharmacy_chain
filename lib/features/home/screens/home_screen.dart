@@ -149,6 +149,8 @@ class HomeScreen extends StatelessWidget {
       case AppRoutes.workSchedule:
       case AppRoutes.schedules:
         return _FeatureInfo('Lịch làm việc', Icons.calendar_today_outlined, Colors.deepPurple);
+      case AppRoutes.attendance:
+        return _FeatureInfo('Chấm công', Icons.fingerprint, Colors.teal);
       default:
         return _FeatureInfo('Chức năng', Icons.extension_outlined, Colors.blueGrey);
     }
