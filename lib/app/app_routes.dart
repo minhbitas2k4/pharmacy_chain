@@ -26,6 +26,7 @@ import '../features/pos/models/cart_item_model.dart';
 import '../features/payment/screens/payment_screen.dart';
 import '../features/invoices/screens/invoice_screen.dart';
 import '../features/employees/screens/employee_profile_screen.dart';
+import '../features/employees/screens/attendance_screen.dart';
 import '../features/schedules/screens/work_schedule_screen.dart';
 import '../features/home/screens/home_screen.dart';
 
@@ -61,6 +62,7 @@ class AppRoutes {
   static const employees = '/employees';
   static const workSchedule = '/work-schedule';
   static const schedules = '/schedules';
+  static const attendance = '/attendance';
   static const home = "/home";
 
   /// Map roles to their permitted routes
@@ -113,6 +115,7 @@ class AppRoutes {
       workSchedule,
       schedules,
       shiftManagement,
+      attendance,
     ],
   };
 
@@ -160,6 +163,7 @@ class AppRoutes {
     employees: (_) => const EmployeeProfileScreen(),
     workSchedule: (_) => const WorkScheduleScreen(),
     schedules: (_) => const WorkScheduleScreen(),
+    attendance: (_) => const AttendanceScreen(),
   };
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
