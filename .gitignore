@@ -43,3 +43,20 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Node.js
+node_modules/
+**/node_modules/
+
+# npm
+npm-debug.log*
+
+# Yarn
+
+yarn-error.log*
+
+# pnpm
+
+pnpm-debug.log*
+
+serviceAccountKey.json

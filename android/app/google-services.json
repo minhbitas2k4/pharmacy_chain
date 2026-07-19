@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "882538989529",
+    "project_id": "pharmacy-chain-managemen-ff760",
+    "storage_bucket": "pharmacy-chain-managemen-ff760.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:882538989529:android:68cc917347a3ee21e97bc8",
+        "android_client_info": {
+          "package_name": "com.example.pharmacy_chain"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMZPfLU-LuDBUTxHX2IbyVSUnFMM11B7Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
