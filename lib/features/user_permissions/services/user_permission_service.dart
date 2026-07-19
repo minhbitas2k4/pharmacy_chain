@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../auth/models/user_model.dart';
 import '../models/app_user_model.dart';
 
 class UserPermissionService {
@@ -16,10 +17,12 @@ class UserPermissionService {
     return snapshot.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
       final Map<String, dynamic> data = Map<String, dynamic>.from(doc.data());
       data['username'] = doc.id;
+      final String rawRole = data['role']?.toString() ?? 'pharmacist';
+      final String normalizedRole = UserModel.normalizeRole(rawRole);
       return AppUserModel(
         name: data['displayName']?.toString() ?? doc.id,
         username: data['email']?.toString() ?? doc.id,
-        role: data['role']?.toString() ?? 'Dược sĩ',
+        role: normalizedRole,
         isLocked: data['isLocked'] == true,
         lastSeenDevice: data['lastSeenDevice']?.toString() ?? 'Android App',
         lastActiveAt: data['lastActiveAt']?.toString() ?? 'Vừa xong',

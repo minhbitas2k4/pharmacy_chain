@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../auth/controllers/auth_controller.dart';
 import '../models/branch_dashboard_model.dart';
 import '../services/branch_service.dart';
 
 class BranchController extends ChangeNotifier {
-  BranchController({required this.branchId, BranchService? branchService})
-    : _branchService = branchService ?? BranchService();
+  BranchController({String? branchId, BranchService? branchService})
+    : branchId = branchId ?? AuthController().currentUser?.branchId ?? '',
+      _branchService = branchService ?? BranchService();
 
   final String branchId;
   final BranchService _branchService;

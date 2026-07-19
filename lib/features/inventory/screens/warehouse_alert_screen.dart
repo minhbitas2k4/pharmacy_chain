@@ -92,7 +92,7 @@ class _WarehouseAlertScreenState extends State<WarehouseAlertScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: _controller.alerts.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(height: 12),
                             itemBuilder: (BuildContext context, int index) {
                               final alert = _controller.alerts[index];

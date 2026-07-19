@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/loading_view.dart';
-import '../../auth/controllers/auth_controller.dart';
 import '../controllers/branch_controller.dart';
 import '../widgets/branch_metric_card.dart';
 import '../widgets/working_staff_card.dart';
@@ -22,8 +20,7 @@ class _BranchScreenState extends State<BranchScreen> {
   @override
   void initState() {
     super.initState();
-    final branchId = AuthController().currentUser?.branchId ?? '';
-    _controller = BranchController(branchId: branchId);
+    _controller = BranchController(); // branchId auto-fetched from AuthController
     _controller.loadDashboard();
   }
 
@@ -47,9 +44,7 @@ class _BranchScreenState extends State<BranchScreen> {
                 const AppHeader(),
                 Expanded(
                   child: RefreshIndicator(
-                    onRefresh: () async {
-                      _controller.loadDashboard();
-                    },
+                    onRefresh: () async => _controller.loadDashboard(),
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(20),
@@ -106,7 +101,7 @@ class _BranchScreenState extends State<BranchScreen> {
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: dashboard.workingStaff.length,
-                              separatorBuilder: (_, __) =>
+                              separatorBuilder: (_, _) =>
                                   const SizedBox(height: 12),
                               itemBuilder: (BuildContext context, int index) =>
                                   WorkingStaffCard(
@@ -129,7 +124,7 @@ class _BranchScreenState extends State<BranchScreen> {
 }
 
 class AppCardSection extends StatelessWidget {
-  const AppCardSection({
+  const AppCardSection({super.key, 
     required this.title,
     required this.summary,
     required this.waiting,

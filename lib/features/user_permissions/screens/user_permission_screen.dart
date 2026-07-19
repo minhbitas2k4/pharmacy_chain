@@ -6,6 +6,7 @@ import '../../../core/widgets/empty_view.dart';
 import '../../../core/widgets/loading_view.dart';
 import '../controllers/user_permission_controller.dart';
 import '../models/app_user_model.dart';
+import '../../auth/models/user_model.dart';
 import '../widgets/user_permission_card.dart';
 
 class UserPermissionScreen extends StatefulWidget {
@@ -42,7 +43,7 @@ class _UserPermissionScreenState extends State<UserPermissionScreen> {
     final String? selectedRole = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
-        String tempRole = user.role;
+        String tempRole = UserModel.getRoleDisplayName(user.role);
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
@@ -81,7 +82,8 @@ class _UserPermissionScreenState extends State<UserPermissionScreen> {
     );
 
     if (selectedRole != null) {
-      _controller.updateRole(user, selectedRole);
+      final String roleKey = UserModel.getRoleKey(selectedRole);
+      _controller.updateRole(user, roleKey);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cập nhật quyền thành công')),

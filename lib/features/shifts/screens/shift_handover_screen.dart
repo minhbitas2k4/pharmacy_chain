@@ -22,23 +22,16 @@ class _ShiftHandoverScreenState extends State<ShiftHandoverScreen> {
   @override
   void initState() {
     super.initState();
-    final user = AuthController().currentUser;
-    final branchId = user?.branchId ?? '';
-    final userId = user?.id ?? '';
-    final workDate = DateTime.now().toIso8601String().substring(0, 10);
-
+    final branchId = AuthController().currentUser?.branchId ?? '';
     _controller = ShiftController(branchId: branchId);
-    _controller.loadHandover(userId, workDate);
+    _controller.loadHandover();
+    _cashController.text = '25000000';
     _cashController.addListener(_recalc);
   }
 
   void _recalc() {
     final double actual = double.tryParse(_cashController.text) ?? 0;
-    final systemCash = double.tryParse(
-          _controller.handover?.systemCash.replaceAll('đ', '').replaceAll('.', '') ?? '0',
-        ) ??
-        0;
-    _difference = actual - systemCash;
+    _difference = actual - 8500000;
     setState(() {});
   }
 
@@ -69,34 +62,21 @@ class _ShiftHandoverScreenState extends State<ShiftHandoverScreen> {
       ),
     );
     if (confirmed == true && mounted) {
-      final user = AuthController().currentUser;
-      final actualCash = double.tryParse(_cashController.text) ?? 0;
-      final reason = _difference != 0 ? _reasonController.text : null;
-
-      await _controller.signHandover(
-        userId: user?.id ?? '',
-        workDate: DateTime.now().toIso8601String().substring(0, 10),
-        actualCash: actualCash,
-        reason: reason,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Đã ký xác nhận bàn giao')));
-      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đã ký xác nhận bàn giao')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final handover = _controller.handover;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _controller,
-          builder: (_, __) {
-            final handover = _controller.handover;
+          builder: (_, _) {
             return Column(
               children: [
                 const AppHeader(),

@@ -5,35 +5,17 @@ import '../models/stock_verification_model.dart';
 import '../models/warehouse_alert_model.dart';
 
 class InventoryService {
-<<<<<<< HEAD
   InventoryService({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _db = firestore ?? FirebaseFirestore.instance;
 
-  final FirebaseFirestore _firestore;
-
-  Future<List<WarehouseAlertModel>> fetchWarehouseAlerts() async {
-    final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
-        .collection('warehouse_alerts')
-        .orderBy('createdAt', descending: true)
-        .get();
-
-    return snapshot.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
-      final Map<String, dynamic> data = Map<String, dynamic>.from(doc.data());
-      return WarehouseAlertModel(
-        productName: data['productName']?.toString() ?? '',
-        batchCode: data['batchCode']?.toString() ?? '',
-        quantityLabel: data['quantityLabel']?.toString() ?? '',
-        branchesLabel: data['branchesLabel']?.toString() ?? '',
-        badgeLabel: data['badgeLabel']?.toString() ?? '',
-      );
-    }).toList();
-=======
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db;
 
   Stream<List<WarehouseAlertModel>> getWarehouseAlerts(String branchId) {
-    return _db
-        .collection('inventories')
-        .where('branch_id', isEqualTo: branchId)
+    Query<Map<String, dynamic>> query = _db.collection('inventories');
+    if (branchId.isNotEmpty) {
+      query = query.where('branch_id', isEqualTo: branchId);
+    }
+    return query
         .snapshots()
         .asyncMap((snapshot) async {
       final alerts = <WarehouseAlertModel>[];
@@ -77,7 +59,7 @@ class InventoryService {
             expiryDate: expiryStr,
             badgeLabel: isExpiringSoon ? 'Còn $daysLeft ngày' : 'Thiếu ${minStock - quantity}',
             productId: data['product_id'] as String?,
-            branchId: branchId,
+            branchId: data['branch_id'] as String? ?? branchId,
           ));
         }
       }
@@ -89,13 +71,14 @@ class InventoryService {
 
       return alerts;
     });
->>>>>>> Develop
   }
 
   Stream<List<InventoryRequestModel>> getReviewRequests(String branchId) {
-    return _db
-        .collection('orders')
-        .where('branch_id', isEqualTo: branchId)
+    Query<Map<String, dynamic>> query = _db.collection('orders');
+    if (branchId.isNotEmpty) {
+      query = query.where('branch_id', isEqualTo: branchId);
+    }
+    return query
         .where('status', whereIn: ['pending', 'approved', 'rejected'])
         .snapshots()
         .map((snapshot) {
@@ -125,9 +108,11 @@ class InventoryService {
   }
 
   Stream<List<StockVerificationModel>> getStockVerification(String branchId) {
-    return _db
-        .collection('inventories')
-        .where('branch_id', isEqualTo: branchId)
+    Query<Map<String, dynamic>> query = _db.collection('inventories');
+    if (branchId.isNotEmpty) {
+      query = query.where('branch_id', isEqualTo: branchId);
+    }
+    return query
         .snapshots()
         .asyncMap((snapshot) async {
       final items = <StockVerificationModel>[];

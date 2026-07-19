@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../app/app_routes.dart';
-import '../../auth/controllers/auth_controller.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/empty_view.dart';
 import '../../../core/widgets/error_view.dart';
 import '../../../core/widgets/loading_view.dart';
 import '../controllers/dashboard_controller.dart';
 import '../models/dashboard_summary_model.dart';
+import '../widgets/dashboard_chart_view.dart';
 import '../widgets/dashboard_filter_tabs.dart';
 import '../widgets/dashboard_metric_card.dart';
 import '../widgets/top_branch_card.dart';
@@ -65,7 +64,7 @@ class _ChainDashboardScreenState extends State<ChainDashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
                           Text(
-                            AppStrings.dashboardChainTitle,
+                            summary?.title ?? AppStrings.dashboardChainTitle,
                             style: Theme.of(context).textTheme.headlineMedium
                                 ?.copyWith(
                                   color: AppColors.textPrimary,
@@ -74,11 +73,47 @@ class _ChainDashboardScreenState extends State<ChainDashboardScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            AppStrings.dashboardChainSubtitle,
+                            summary?.subtitle ?? AppStrings.dashboardChainSubtitle,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(color: AppColors.textSecondary),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
+                          // Branch Selector Dropdown
+                          if (_controller.branches.isNotEmpty) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.border),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _controller.selectedBranchId,
+                                  isExpanded: true,
+                                  icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.textSecondary),
+                                  items: [
+                                    const DropdownMenuItem(
+                                      value: '',
+                                      child: Text('Toàn chuỗi (Tất cả chi nhánh)', style: TextStyle(fontWeight: FontWeight.w600)),
+                                    ),
+                                    ..._controller.branches.map((branch) {
+                                      return DropdownMenuItem(
+                                        value: branch['id']!,
+                                        child: Text(branch['name']!, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                      );
+                                    }),
+                                  ],
+                                  onChanged: (String? val) {
+                                    if (val != null) {
+                                      _controller.selectBranch(val);
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
                           DashboardFilterTabs(
                             selectedPeriod: _controller.selectedPeriod,
                             onSelected: _handleTabChanged,
@@ -130,8 +165,10 @@ class _ChainDashboardScreenState extends State<ChainDashboardScreen> {
                               },
                             ),
                             const SizedBox(height: 24),
+                            DashboardChartView(topBranches: summary.topBranches),
+                            const SizedBox(height: 24),
                             Text(
-                              'Top chi nhánh',
+                              _controller.selectedBranchId.isEmpty ? 'Top chi nhánh' : 'Sản phẩm bán chạy',
                               style: Theme.of(context).textTheme.titleLarge
                                   ?.copyWith(
                                     color: AppColors.textPrimary,
@@ -148,7 +185,7 @@ class _ChainDashboardScreenState extends State<ChainDashboardScreen> {
                                   rank: index + 1,
                                 );
                               },
-                              separatorBuilder: (_, __) =>
+                              separatorBuilder: (_, _) =>
                                   const SizedBox(height: 12),
                               itemCount: summary.topBranches.length,
                             ),

@@ -1,12 +1,12 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 Future<void> testFirebase() async {
   try {
-    final credential =
-    await FirebaseAuth.instance.signInAnonymously();
-
-    print("Firebase OK: ${credential.user?.uid}");
+    final snapshot = await FirebaseFirestore.instance.collection('users').get();
+    for (var doc in snapshot.docs) {
+      print("USER DOC ID: ${doc.id} -> ${doc.data()}");
+    }
   } catch (e) {
-    print(e);
+    print("ERROR FETCHING USERS: $e");
   }
 }

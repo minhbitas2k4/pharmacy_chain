@@ -1,7 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../auth/controllers/auth_controller.dart';
 import '../models/maintenance_notice_model.dart';
+import '../models/app_notification_model.dart';
 import '../services/notification_service.dart';
 
 class NotificationController extends ChangeNotifier {
@@ -23,11 +24,13 @@ class NotificationController extends ChangeNotifier {
   bool _isSending = false;
   String _selectedRecipient = 'Tất cả';
   MaintenanceNoticeModel? _notice;
+  List<AppNotificationModel> _notifications = [];
 
   bool get isLoading => _isLoading;
   bool get isSending => _isSending;
   String get selectedRecipient => _selectedRecipient;
   MaintenanceNoticeModel? get notice => _notice;
+  List<AppNotificationModel> get notifications => _notifications;
 
   Future<void> loadDefaultNotice() async {
     _setLoading(true);
@@ -36,11 +39,36 @@ class NotificationController extends ChangeNotifier {
       titleController.text = _notice!.title;
       contentController.text = _notice!.content;
       timeController.text = _notice!.timeRange;
-      _selectedRecipient = _notice!.recipients.first;
+      _selectedRecipient = _notice!.recipients.isNotEmpty ? _notice!.recipients.first : 'Tất cả';
     } finally {
       _setLoading(false);
       notifyListeners();
     }
+  }
+
+  Future<void> loadNotifications() async {
+    _setLoading(true);
+    try {
+      final String targetId = AuthController().currentUser?.id ?? 'system';
+      await _notificationService.runAutomaticInventoryScan(targetId);
+      _notifications = await _notificationService.fetchNotifications(targetId);
+    } finally {
+      _setLoading(false);
+      notifyListeners();
+    }
+  }
+
+  Future<void> markAsRead(String id) async {
+    try {
+      await _notificationService.markAsRead(id);
+      _notifications = _notifications.map((item) {
+        if (item.id == id) {
+          return item.copyWith(isRead: 'true');
+        }
+        return item;
+      }).toList();
+      notifyListeners();
+    } catch (_) {}
   }
 
   void selectRecipient(String recipient) {
@@ -67,10 +95,25 @@ class NotificationController extends ChangeNotifier {
     }
     _isSending = true;
     notifyListeners();
-    await Future<void>.delayed(const Duration(milliseconds: 650));
-    _isSending = false;
-    notifyListeners();
-    return true;
+
+    try {
+      final String senderId = AuthController().currentUser?.id ?? 'system';
+      final MaintenanceNoticeModel notice = MaintenanceNoticeModel(
+        title: titleController.text.trim(),
+        content: contentController.text.trim(),
+        timeRange: timeController.text.trim(),
+        recipients: <String>[_selectedRecipient],
+      );
+
+      await _notificationService.sendNotice(notice, senderId: senderId);
+      _notice = notice;
+      return true;
+    } catch (_) {
+      return false;
+    } finally {
+      _isSending = false;
+      notifyListeners();
+    }
   }
 
   void _setLoading(bool value) {

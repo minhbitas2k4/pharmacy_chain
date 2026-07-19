@@ -103,7 +103,7 @@ class _ShiftManagementScreenState extends State<ShiftManagementScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: _controller.weeklySchedule.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(height: 12),
                             itemBuilder: (BuildContext context, int index) =>
                                 ShiftScheduleCard(

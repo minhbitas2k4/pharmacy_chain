@@ -20,7 +20,7 @@ class FakeSystemConfigService extends SystemConfigService {
   }
 
   @override
-  Future<void> saveConfig(SystemConfigModel config) async {
+  Future<void> saveConfig(SystemConfigModel config, {String? updatedBy}) async {
     savedConfig = config;
   }
 }

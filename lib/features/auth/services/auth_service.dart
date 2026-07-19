@@ -24,7 +24,8 @@ class AuthService {
     }
 
     final user = UserModel.fromMap(doc.data()!..['uid'] = uid);
-    if (user.isLocked) {
+    if (user.status != null &&
+        user.status!.toLowerCase() != 'active') {
       await _auth.signOut();
       throw Exception('Tài khoản đã bị khóa');
     }

@@ -6,7 +6,7 @@ class SystemConfigService {
   SystemConfigService({FirebaseFirestore? firestore}) : _firestore = firestore;
 
   final FirebaseFirestore? _firestore;
-  static const String _collectionName = 'system_config';
+  static const String _collectionName = 'system_configs';
   static const String _documentId = 'chain_defaults';
 
   FirebaseFirestore get _firestoreInstance {
@@ -34,9 +34,16 @@ class SystemConfigService {
     );
   }
 
-  Future<void> saveConfig(SystemConfigModel config) async {
+  Future<void> saveConfig(SystemConfigModel config, {String? updatedBy}) async {
+    final data = config.toMap();
+    data['config_key'] = 'store_open_hours';
+    data['updated_at'] = FieldValue.serverTimestamp();
+    if (updatedBy != null) {
+      data['updated_by'] = updatedBy;
+    }
+
     await _firestoreInstance.collection(_collectionName).doc(_documentId).set(
-      config.toMap(),
+      data,
       SetOptions(merge: true),
     );
   }

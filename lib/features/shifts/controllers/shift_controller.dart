@@ -2,14 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../auth/controllers/auth_controller.dart';
 import '../models/shift_handover_model.dart';
 import '../models/shift_model.dart';
 import '../models/shift_request_model.dart';
 import '../services/shift_service.dart';
 
 class ShiftController extends ChangeNotifier {
-  ShiftController({required this.branchId, ShiftService? shiftService})
-    : _shiftService = shiftService ?? ShiftService();
+  ShiftController({String? branchId, ShiftService? shiftService})
+    : branchId = branchId ?? AuthController().currentUser?.branchId ?? '',
+      _shiftService = shiftService ?? ShiftService();
 
   final String branchId;
   final ShiftService _shiftService;
@@ -82,18 +84,31 @@ class ShiftController extends ChangeNotifier {
     );
   }
 
-  Future<void> loadHandover(String userId, String workDate) async {
+  Future<void> loadHandover({String? userId, String? workDate}) async {
     _setLoading(true);
     try {
+      final currentUser = AuthController().currentUser;
+      final finalUserId = userId ?? currentUser?.id ?? '';
+      final finalWorkDate = workDate ?? 
+          '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}';
+      
+      if (finalUserId.isEmpty) {
+        _errorMessage = 'Không thể xác định người dùng hiện tại';
+        _setLoading(false);
+        notifyListeners();
+        return;
+      }
+
       _handover = await _shiftService.getHandoverData(
         branchId: branchId,
-        userId: userId,
-        workDate: workDate,
+        userId: finalUserId,
+        workDate: finalWorkDate,
       );
     } catch (e) {
-      _errorMessage = 'Không thể tải dữ liệu bàn giao';
+      _errorMessage = 'Không thể tải dữ liệu bàn giao: $e';
     } finally {
       _setLoading(false);
+      notifyListeners();
     }
   }
 

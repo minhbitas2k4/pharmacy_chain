@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../../auth/controllers/auth_controller.dart';
 import '../models/system_config_model.dart';
 import '../services/system_config_service.dart';
 
@@ -80,7 +80,13 @@ class SystemConfigController extends ChangeNotifier {
             ? 'Định dạng hóa đơn chuẩn'
             : invoiceFormatController.text.trim(),
       );
-      await _systemConfigService.saveConfig(config);
+      String? currentUserId;
+      try {
+        currentUserId = AuthController().currentUser?.id;
+      } catch (_) {
+        // Safe fallback for test environment where Firebase is not initialized
+      }
+      await _systemConfigService.saveConfig(config, updatedBy: currentUserId);
       _config = config;
       return true;
     } catch (_) {

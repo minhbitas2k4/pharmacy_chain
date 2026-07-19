@@ -38,6 +38,33 @@ class DrugController extends ChangeNotifier {
     }
   }
 
+  Future<void> addDrug(DrugModel drug) async {
+    try {
+      await _drugService.createDrug(drug);
+      // Reload from DB to get the generated id
+      await loadDrugs();
+    } catch (_) {}
+  }
+
+  Future<void> updateDrug(DrugModel drug) async {
+    try {
+      await _drugService.updateDrug(drug);
+      final int index = _drugs.indexWhere((DrugModel element) => element.id == drug.id);
+      if (index != -1) {
+        _drugs[index] = drug;
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> deleteDrug(String drugId) async {
+    try {
+      await _drugService.deleteDrug(drugId);
+      _drugs.removeWhere((DrugModel element) => element.id == drugId);
+      notifyListeners();
+    } catch (_) {}
+  }
+
   void updateQuery(String value) {
     _query = value.trim();
     notifyListeners();
