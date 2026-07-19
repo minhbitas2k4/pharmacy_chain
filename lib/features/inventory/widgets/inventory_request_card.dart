@@ -33,6 +33,8 @@ class InventoryRequestCard extends StatelessWidget {
       InventoryRequestStatus.rejected => 'Từ chối',
     };
 
+    final bool isPending = request.status == InventoryRequestStatus.pending;
+
     return AppCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -70,30 +72,42 @@ class InventoryRequestCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 12),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onReject,
-                  child: const Text('Từ chối'),
+          if (isPending)
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: onReject,
+                    child: const Text('Từ chối'),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onView,
-                  child: const Text('Xem chi tiết'),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: onView,
+                    child: const Text('Xem chi tiết'),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: onApprove,
-                  child: const Text('Duyệt'),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: onApprove,
+                    child: const Text('Duyệt'),
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            )
+          else
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: onView,
+                    child: const Text('Xem chi tiết'),
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );

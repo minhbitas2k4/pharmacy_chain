@@ -7,6 +7,8 @@ import '../models/shift_model.dart';
 import '../models/shift_request_model.dart';
 import '../services/shift_service.dart';
 
+enum ShiftPeriod { day, week, month }
+
 class ShiftController extends ChangeNotifier {
   ShiftController({required this.branchId, ShiftService? shiftService})
     : _shiftService = shiftService ?? ShiftService();
@@ -25,6 +27,9 @@ class ShiftController extends ChangeNotifier {
   StreamSubscription<List<ShiftRequestModel>>? _changeRequestsSubscription;
   StreamSubscription<List<ShiftRequestModel>>? _leaveRequestsSubscription;
 
+  ShiftPeriod _selectedPeriod = ShiftPeriod.week;
+  DateTime _selectedDate = DateTime.now();
+
   bool get isLoading => _isLoading;
   int get selectedTab => _selectedTab;
   List<ShiftModel> get weeklySchedule =>
@@ -35,11 +40,22 @@ class ShiftController extends ChangeNotifier {
       List<ShiftRequestModel>.unmodifiable(_leaveRequests);
   ShiftHandoverModel? get handover => _handover;
   String? get errorMessage => _errorMessage;
+  ShiftPeriod get selectedPeriod => _selectedPeriod;
+  DateTime get selectedDate => _selectedDate;
 
   void loadSchedule() {
     _setLoading(true);
     _scheduleSubscription?.cancel();
-    _scheduleSubscription = _shiftService.getWeeklySchedule(branchId).listen(
+
+    final range = _getDateRange(_selectedPeriod, _selectedDate);
+
+    _scheduleSubscription = _shiftService
+        .getScheduleByRange(
+          branchId: branchId,
+          startDate: range.start,
+          endDate: range.end,
+        )
+        .listen(
       (schedule) {
         _weeklySchedule = schedule;
         _errorMessage = null;
@@ -57,7 +73,8 @@ class ShiftController extends ChangeNotifier {
     _changeRequestsSubscription?.cancel();
     _leaveRequestsSubscription?.cancel();
 
-    _changeRequestsSubscription = _shiftService.getChangeRequests(branchId).listen(
+    _changeRequestsSubscription =
+        _shiftService.getChangeRequests(branchId).listen(
       (requests) {
         _changeRequests = requests;
         _errorMessage = null;
@@ -69,7 +86,8 @@ class ShiftController extends ChangeNotifier {
       },
     );
 
-    _leaveRequestsSubscription = _shiftService.getLeaveRequests(branchId).listen(
+    _leaveRequestsSubscription =
+        _shiftService.getLeaveRequests(branchId).listen(
       (requests) {
         _leaveRequests = requests;
         _errorMessage = null;
@@ -100,6 +118,98 @@ class ShiftController extends ChangeNotifier {
   void selectTab(int index) {
     _selectedTab = index;
     notifyListeners();
+  }
+
+  void setPeriod(ShiftPeriod period) {
+    if (_selectedPeriod == period) return;
+    _selectedPeriod = period;
+    notifyListeners();
+    loadSchedule();
+  }
+
+  void setDate(DateTime date) {
+    _selectedDate = date;
+    notifyListeners();
+    loadSchedule();
+  }
+
+  void previousPeriod() {
+    switch (_selectedPeriod) {
+      case ShiftPeriod.day:
+        _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+        break;
+      case ShiftPeriod.week:
+        _selectedDate = _selectedDate.subtract(const Duration(days: 7));
+        break;
+      case ShiftPeriod.month:
+        _selectedDate = DateTime(
+          _selectedDate.year,
+          _selectedDate.month - 1,
+          _selectedDate.day,
+        );
+        break;
+    }
+    notifyListeners();
+    loadSchedule();
+  }
+
+  void nextPeriod() {
+    final now = DateTime.now();
+    switch (_selectedPeriod) {
+      case ShiftPeriod.day:
+        final next = _selectedDate.add(const Duration(days: 1));
+        if (!next.isAfter(now)) _selectedDate = next;
+        break;
+      case ShiftPeriod.week:
+        final next = _selectedDate.add(const Duration(days: 7));
+        if (!next.isAfter(now)) _selectedDate = next;
+        break;
+      case ShiftPeriod.month:
+        final next = DateTime(
+          _selectedDate.year,
+          _selectedDate.month + 1,
+          _selectedDate.day,
+        );
+        if (!next.isAfter(now)) _selectedDate = next;
+        break;
+    }
+    notifyListeners();
+    loadSchedule();
+  }
+
+  String get periodLabel {
+    switch (_selectedPeriod) {
+      case ShiftPeriod.day:
+        return '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}';
+      case ShiftPeriod.week:
+        return 'Tuần ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}';
+      case ShiftPeriod.month:
+        return 'Tháng ${_selectedDate.month}/${_selectedDate.year}';
+    }
+  }
+
+  ({DateTime start, DateTime end}) _getDateRange(
+    ShiftPeriod period,
+    DateTime date,
+  ) {
+    switch (period) {
+      case ShiftPeriod.day:
+        final start = DateTime(date.year, date.month, date.day);
+        final end = DateTime(date.year, date.month, date.day, 23, 59, 59);
+        return (start: start, end: end);
+
+      case ShiftPeriod.week:
+        final weekday = date.weekday;
+        final start = date.subtract(Duration(days: weekday - 1));
+        final startOfDay = DateTime(start.year, start.month, start.day);
+        final endOfDay = startOfDay.add(const Duration(days: 7, seconds: -1));
+        return (start: startOfDay, end: endOfDay);
+
+      case ShiftPeriod.month:
+        final start = DateTime(date.year, date.month, 1);
+        final end = DateTime(date.year, date.month + 1, 0, 23, 59, 59);
+        return (start: start, end: end);
+    }
   }
 
   Future<void> approveRequest(ShiftRequestModel request) async {

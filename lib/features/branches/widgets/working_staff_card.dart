@@ -28,7 +28,21 @@ class WorkingStaffCard extends StatelessWidget {
                   staff.name,
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
-                Text('${staff.role} - ${staff.shift}'),
+                Text(
+                  staff.shift,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  staff.role,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.pharmaGreen,
+                  ),
+                ),
               ],
             ),
           ),

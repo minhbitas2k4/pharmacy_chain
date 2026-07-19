@@ -28,8 +28,13 @@ class _ShiftHandoverScreenState extends State<ShiftHandoverScreen> {
     final workDate = DateTime.now().toIso8601String().substring(0, 10);
 
     _controller = ShiftController(branchId: branchId);
-    _controller.loadHandover(userId, workDate);
+    _loadHandoverData(userId, workDate);
     _cashController.addListener(_recalc);
+  }
+
+  Future<void> _loadHandoverData(String userId, String workDate) async {
+    await _controller.loadHandover(userId, workDate);
+    if (mounted) setState(() {});
   }
 
   void _recalc() {
@@ -39,7 +44,7 @@ class _ShiftHandoverScreenState extends State<ShiftHandoverScreen> {
         ) ??
         0;
     _difference = actual - systemCash;
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   @override
@@ -118,10 +123,48 @@ class _ShiftHandoverScreenState extends State<ShiftHandoverScreen> {
                               ?.copyWith(color: AppColors.textSecondary),
                         ),
                         const SizedBox(height: 20),
-                        if (handover == null)
-                          const SizedBox(
-                            height: 120,
-                            child: Center(child: CircularProgressIndicator()),
+                        if (_controller.isLoading)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 80),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CircularProgressIndicator(),
+                                  SizedBox(height: 16),
+                                  Text('Đang tải dữ liệu bàn giao...'),
+                                ],
+                              ),
+                            ),
+                          )
+                        else if (handover == null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 40),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.inbox_outlined,
+                                  size: 48,
+                                  color: AppColors.textSecondary,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'Không có ca nào hôm nay',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Bạn chưa được phân ca hôm nay.\nVui lòng liên hệ quản lý chi nhánh.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
                           )
                         else ...[
                           _InfoLine(

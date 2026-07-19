@@ -139,6 +139,9 @@ class _InventoryReviewScreenState extends State<InventoryReviewScreen> {
                         InventoryReviewTabs(
                           selectedIndex: _controller.selectedReviewTab,
                           onChanged: _controller.selectReviewTab,
+                          pendingCount: pending.length,
+                          approvedCount: approved.length,
+                          rejectedCount: rejected.length,
                         ),
                         const SizedBox(height: 20),
                         ...list.map(

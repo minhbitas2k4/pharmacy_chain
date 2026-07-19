@@ -6,6 +6,8 @@ class ShiftModel {
     required this.endTime,
     this.branchId,
     this.status,
+    this.shiftName = '',
+    this.workDate = '',
   });
 
   final String id;
@@ -14,6 +16,8 @@ class ShiftModel {
   final String endTime;
   final String? branchId;
   final String? status;
+  final String shiftName;
+  final String workDate;
 
   factory ShiftModel.fromMap(Map<String, dynamic> data, {String? id}) {
     return ShiftModel(
@@ -23,6 +27,8 @@ class ShiftModel {
       endTime: data['end_time'] as String? ?? '',
       branchId: data['branch_id'] as String?,
       status: data['status'] as String?,
+      shiftName: data['shift_name'] as String? ?? '',
+      workDate: data['work_date'] as String? ?? '',
     );
   }
 
@@ -33,6 +39,8 @@ class ShiftModel {
       'end_time': endTime,
       'branch_id': branchId,
       'status': status,
+      'shift_name': shiftName,
+      'work_date': workDate,
     };
   }
 }

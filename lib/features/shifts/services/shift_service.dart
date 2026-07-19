@@ -7,18 +7,35 @@ import '../models/shift_request_model.dart';
 class ShiftService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  Stream<List<ShiftModel>> getWeeklySchedule(String branchId) {
+  Stream<List<ShiftModel>> getScheduleByRange({
+    required String branchId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) {
+    final startStr =
+        '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}';
+    final endStr =
+        '${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}';
+
     return _db
         .collection('schedules')
         .where('branch_id', isEqualTo: branchId)
-        .where('status', isEqualTo: 'active')
         .snapshots()
         .asyncMap((snapshot) async {
+      final filteredDocs = snapshot.docs.where((doc) {
+        final data = doc.data();
+        final workDate = data['work_date'] as String? ?? '';
+        return workDate.compareTo(startStr) >= 0 &&
+            workDate.compareTo(endStr) <= 0;
+      }).toList();
+
       final shifts = <ShiftModel>[];
 
-      for (final doc in snapshot.docs) {
+      for (final doc in filteredDocs) {
         final data = doc.data();
         final shiftId = data['shift_id'] as String?;
+        final workDate = data['work_date'] as String? ?? '';
+        final status = data['status'] as String? ?? '';
 
         String shiftName = '';
         String startTime = '';
@@ -47,9 +64,16 @@ class ShiftService {
           startTime: startTime,
           endTime: endTime,
           branchId: branchId,
-          status: data['shift_name'] as String? ?? shiftName,
+          status: status,
+          shiftName: shiftName,
+          workDate: workDate,
         ));
       }
+
+      shifts.sort((a, b) {
+        if (a.workDate != b.workDate) return a.workDate.compareTo(b.workDate);
+        return a.startTime.compareTo(b.startTime);
+      });
 
       return shifts;
     });
@@ -59,12 +83,15 @@ class ShiftService {
     return _db
         .collection('schedules')
         .where('branch_id', isEqualTo: branchId)
-        .where('status', isEqualTo: 'pending_change')
         .snapshots()
         .asyncMap((snapshot) async {
+      final pendingChangeDocs = snapshot.docs.where((doc) {
+        return doc.data()['status'] == 'pending_change';
+      }).toList();
+
       final requests = <ShiftRequestModel>[];
 
-      for (final doc in snapshot.docs) {
+      for (final doc in pendingChangeDocs) {
         final data = doc.data();
         final userDoc = await _db
             .collection('users')
@@ -93,12 +120,15 @@ class ShiftService {
     return _db
         .collection('schedules')
         .where('branch_id', isEqualTo: branchId)
-        .where('status', isEqualTo: 'pending_leave')
         .snapshots()
         .asyncMap((snapshot) async {
+      final pendingLeaveDocs = snapshot.docs.where((doc) {
+        return doc.data()['status'] == 'pending_leave';
+      }).toList();
+
       final requests = <ShiftRequestModel>[];
 
-      for (final doc in snapshot.docs) {
+      for (final doc in pendingLeaveDocs) {
         final data = doc.data();
         final userDoc = await _db
             .collection('users')
@@ -170,10 +200,15 @@ class ShiftService {
     final userDoc = await _db.collection('users').doc(userId).get();
     final userName = userDoc.data()?['displayName'] as String? ?? '';
 
+    final startOfDay = DateTime.parse(workDate);
+    final endOfDay = DateTime(startOfDay.year, startOfDay.month, startOfDay.day, 23, 59, 59);
+
     final ordersQuery = await _db
         .collection('orders')
         .where('branch_id', isEqualTo: branchId)
         .where('cashier_id', isEqualTo: userId)
+        .where('created_at', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+        .where('created_at', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
         .get();
 
     double systemCash = 0;

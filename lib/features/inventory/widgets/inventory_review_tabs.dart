@@ -7,17 +7,23 @@ class InventoryReviewTabs extends StatelessWidget {
     super.key,
     required this.selectedIndex,
     required this.onChanged,
+    this.pendingCount = 0,
+    this.approvedCount = 0,
+    this.rejectedCount = 0,
   });
 
   final int selectedIndex;
   final ValueChanged<int> onChanged;
+  final int pendingCount;
+  final int approvedCount;
+  final int rejectedCount;
 
   @override
   Widget build(BuildContext context) {
-    const List<String> labels = <String>[
-      'Chờ duyệt (3)',
-      'Đã duyệt',
-      'Từ chối',
+    final List<String> labels = <String>[
+      'Chờ duyệt ($pendingCount)',
+      'Đã duyệt ($approvedCount)',
+      'Từ chối ($rejectedCount)',
     ];
     return Row(
       children: List<Widget>.generate(labels.length, (int index) {

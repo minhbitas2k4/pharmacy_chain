@@ -72,10 +72,12 @@ class InventoryService {
     return _db
         .collection('orders')
         .where('branch_id', isEqualTo: branchId)
-        .where('status', whereIn: ['pending', 'approved', 'rejected'])
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
+      final validStatuses = {'pending', 'approved', 'rejected'};
+      return snapshot.docs.where((doc) {
+        return validStatuses.contains(doc.data()['status']);
+      }).map((doc) {
         final data = doc.data();
         final createdAt = (data['created_at'] as Timestamp?)?.toDate();
         final dateStr = createdAt != null
