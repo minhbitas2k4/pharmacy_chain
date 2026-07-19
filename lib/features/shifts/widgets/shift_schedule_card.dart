@@ -25,7 +25,7 @@ class ShiftScheduleCard extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
           ),
-          Text(shift.time),
+          Text('${shift.startTime} - ${shift.endTime}'),
         ],
       ),
     );

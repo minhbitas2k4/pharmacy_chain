@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_header.dart';
+import '../../auth/controllers/auth_controller.dart';
 import '../controllers/inventory_controller.dart';
 import '../widgets/barcode_scan_box.dart';
 import '../widgets/stock_progress_card.dart';
@@ -21,7 +22,8 @@ class _StockInOutScreenState extends State<StockInOutScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = InventoryController();
+    final branchId = AuthController().currentUser?.branchId ?? '';
+    _controller = InventoryController(branchId: branchId);
     _controller.loadStockVerification();
   }
 

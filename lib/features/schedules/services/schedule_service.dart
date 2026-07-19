@@ -1,30 +1,38 @@
-// import '../models/shift_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/work_schedule_model.dart';
 
 class ScheduleService {
-  Future<List<WorkScheduleModel>> fetchMonth() async {
-    await Future<void>.delayed(const Duration(milliseconds: 450));
-    return List<WorkScheduleModel>.generate(
-      31,
-      (int index) =>
-          WorkScheduleModel(day: index + 1, isSelected: index + 1 == 10),
-    );
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  Stream<List<WorkScheduleModel>> getSchedules(String branchId, String month) {
+    return _db
+        .collection('schedules')
+        .where('branch_id', isEqualTo: branchId)
+        .where('work_date', isGreaterThanOrEqualTo: '$month-01')
+        .where('work_date', isLessThan: '$month-32')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return WorkScheduleModel.fromMap(doc.data(), id: doc.id);
+      }).toList();
+    });
   }
 
-  // Future<List<ShiftModel>> fetchTodayShifts() async {
-  //   await Future<void>.delayed(const Duration(milliseconds: 450));
-  //   return const <ShiftModel>[
-  //     ShiftModel(
-  //       name: 'Nguyễn Thị Lan',
-  //       time: '07:00-15:00',
-  //       status: 'Ca sáng',
-  //     ),
-  //     ShiftModel(
-  //       name: 'Trần Văn Minh',
-  //       time: '15:00-22:00',
-  //       status: 'Ca chiều',
-  //     ),
-  //     ShiftModel(name: 'Lê Thị Hoa', time: 'Nghỉ phép', status: 'Nghỉ phép'),
-  //   ];
-  // }
+  Future<void> addSchedule({
+    required String branchId,
+    required String userId,
+    required String shiftId,
+    required String workDate,
+    String? notes,
+  }) async {
+    await _db.collection('schedules').add({
+      'branch_id': branchId,
+      'user_id': userId,
+      'shift_id': shiftId,
+      'work_date': workDate,
+      'status': 'active',
+      'notes': notes,
+    });
+  }
 }

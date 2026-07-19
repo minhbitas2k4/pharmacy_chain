@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/loading_view.dart';
+import '../../auth/controllers/auth_controller.dart';
 import '../controllers/shift_controller.dart';
 import '../widgets/shift_request_card.dart';
 import '../widgets/shift_schedule_card.dart';
@@ -20,7 +21,8 @@ class _ShiftManagementScreenState extends State<ShiftManagementScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = ShiftController();
+    final branchId = AuthController().currentUser?.branchId ?? '';
+    _controller = ShiftController(branchId: branchId);
     _controller.loadSchedule();
     _controller.loadRequests();
   }

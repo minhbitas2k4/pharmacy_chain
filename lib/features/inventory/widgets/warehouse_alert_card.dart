@@ -37,9 +37,9 @@ class WarehouseAlertCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text('Lô: ${alert.batchCode} • ${alert.quantityLabel}'),
+          Text('Lô: ${alert.batchCode} • ${alert.quantity} hộp'),
           const SizedBox(height: 4),
-          Text(alert.branchesLabel),
+          Text('HSD: ${alert.expiryDate}'),
           const SizedBox(height: 12),
           ElevatedButton(
             onPressed: onCreateOrder,

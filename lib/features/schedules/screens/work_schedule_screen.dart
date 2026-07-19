@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_header.dart';
+import '../../auth/controllers/auth_controller.dart';
 import '../controllers/schedule_controller.dart';
 import '../widgets/month_calendar_mock.dart';
 import '../widgets/schedule_filter_tabs.dart';
@@ -17,12 +17,14 @@ class WorkScheduleScreen extends StatefulWidget {
 
 class _WorkScheduleScreenState extends State<WorkScheduleScreen> {
   late final ScheduleController _controller;
+  int _selectedDay = DateTime.now().day;
 
   @override
   void initState() {
     super.initState();
-    _controller = ScheduleController();
-    _controller.load();
+    final branchId = AuthController().currentUser?.branchId ?? '';
+    _controller = ScheduleController(branchId: branchId);
+    _controller.loadSchedules();
   }
 
   @override
@@ -31,64 +33,20 @@ class _WorkScheduleScreenState extends State<WorkScheduleScreen> {
     super.dispose();
   }
 
-  Future<void> _addShift() async {
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController startController = TextEditingController();
-    final TextEditingController endController = TextEditingController();
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('+ Xếp ca mới'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Nhân viên'),
-            ),
-            TextField(
-              controller: startController,
-              decoration: const InputDecoration(labelText: 'Giờ bắt đầu'),
-            ),
-            TextField(
-              controller: endController,
-              decoration: const InputDecoration(labelText: 'Giờ kết thúc'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Lưu'),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true &&
-        nameController.text.isNotEmpty &&
-        startController.text.isNotEmpty &&
-        endController.text.isNotEmpty) {
-      _controller.addShift(
-        nameController.text,
-        startController.text,
-        endController.text,
-      );
-    } else if (confirmed == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập đầy đủ thông tin')),
-      );
-    }
-    nameController.dispose();
-    startController.dispose();
-    endController.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    final todayShifts = _controller.getSchedulesForDay(_selectedDay);
+
+    final daysWithSchedules = <int>{};
+    for (final schedule in _controller.schedules) {
+      final date = DateTime.tryParse(schedule.workDate);
+      if (date != null && date.month == now.month && date.year == now.year) {
+        daysWithSchedules.add(date.day);
+      }
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -106,13 +64,17 @@ class _WorkScheduleScreenState extends State<WorkScheduleScreen> {
                       children: [
                         Text(
                           'Lịch làm việc',
-                          style: Theme.of(context).textTheme.headlineMedium
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Tháng 7/2025 - CN Quận 1',
-                          style: Theme.of(context).textTheme.bodyMedium
+                          'Tháng ${now.month}/${now.year}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
                               ?.copyWith(color: AppColors.textSecondary),
                         ),
                         const SizedBox(height: 20),
@@ -122,13 +84,18 @@ class _WorkScheduleScreenState extends State<WorkScheduleScreen> {
                         ),
                         const SizedBox(height: 16),
                         MonthCalendarMock(
-                          days: _controller.month,
-                          onSelected: (day) => _controller.selectDate(day),
+                          daysInMonth: daysInMonth,
+                          selectedDay: _selectedDay,
+                          daysWithSchedules: daysWithSchedules.toList(),
+                          onSelected: (day) {
+                            setState(() {
+                              _selectedDay = day;
+                            });
+                            _controller.selectDate(day);
+                          },
                         ),
                         const SizedBox(height: 16),
-                        TodayShiftCard(shifts: _controller.todayShifts),
-                        const SizedBox(height: 16),
-                        AppButton(text: '+ Xếp ca mới', onPressed: _addShift),
+                        TodayShiftCard(shifts: todayShifts),
                       ],
                     ),
                   ),

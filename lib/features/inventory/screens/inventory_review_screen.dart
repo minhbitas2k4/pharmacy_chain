@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/app_header.dart';
+import '../../auth/controllers/auth_controller.dart';
 import '../models/inventory_request_model.dart';
 import '../controllers/inventory_controller.dart';
 import '../widgets/inventory_request_card.dart';
@@ -20,7 +21,8 @@ class _InventoryReviewScreenState extends State<InventoryReviewScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = InventoryController();
+    final branchId = AuthController().currentUser?.branchId ?? '';
+    _controller = InventoryController(branchId: branchId);
     _controller.loadReviewRequests();
   }
 
@@ -89,71 +91,79 @@ class _InventoryReviewScreenState extends State<InventoryReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pending = _controller.requests
-        .where((r) => r.status == InventoryRequestStatus.pending)
-        .toList();
-    final approved = _controller.requests
-        .where((r) => r.status == InventoryRequestStatus.approved)
-        .toList();
-    final rejected = _controller.requests
-        .where((r) => r.status == InventoryRequestStatus.rejected)
-        .toList();
-    final list = _controller.selectedReviewTab == 0
-        ? pending
-        : _controller.selectedReviewTab == 1
-        ? approved
-        : rejected;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            const AppHeader(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Duyệt kho',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Phê duyệt yêu cầu nhập/xuất kho',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    InventoryReviewTabs(
-                      selectedIndex: _controller.selectedReviewTab,
-                      onChanged: _controller.selectReviewTab,
-                    ),
-                    const SizedBox(height: 20),
-                    ...list.map(
-                      (request) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: InventoryRequestCard(
-                          request: request,
-                          onReject: () => _reject(request),
-                          onApprove: () => _approve(request),
-                          onView: () =>
-                              ScaffoldMessenger.of(context).showSnackBar(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (BuildContext context, Widget? child) {
+            final pending = _controller.requests
+                .where((r) => r.status == InventoryRequestStatus.pending)
+                .toList();
+            final approved = _controller.requests
+                .where((r) => r.status == InventoryRequestStatus.approved)
+                .toList();
+            final rejected = _controller.requests
+                .where((r) => r.status == InventoryRequestStatus.rejected)
+                .toList();
+            final list = _controller.selectedReviewTab == 0
+                ? pending
+                : _controller.selectedReviewTab == 1
+                    ? approved
+                    : rejected;
+            return Column(
+              children: [
+                const AppHeader(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Duyệt kho',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Phê duyệt yêu cầu nhập/xuất kho',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: 20),
+                        InventoryReviewTabs(
+                          selectedIndex: _controller.selectedReviewTab,
+                          onChanged: _controller.selectReviewTab,
+                        ),
+                        const SizedBox(height: 20),
+                        ...list.map(
+                          (request) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: InventoryRequestCard(
+                              request: request,
+                              onReject: () => _reject(request),
+                              onApprove: () => _approve(request),
+                              onView: () =>
+                                  ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Mở chi tiết yêu cầu'),
                                 ),
                               ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );

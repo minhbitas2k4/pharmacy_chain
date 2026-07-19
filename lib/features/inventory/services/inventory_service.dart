@@ -1,72 +1,159 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/inventory_request_model.dart';
 import '../models/stock_verification_model.dart';
 import '../models/warehouse_alert_model.dart';
 
 class InventoryService {
-  Future<List<WarehouseAlertModel>> fetchWarehouseAlerts() async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return const <WarehouseAlertModel>[
-      WarehouseAlertModel(
-        productName: 'Augmentin 1g',
-        batchCode: 'LOT230701',
-        quantityLabel: '150 hộp',
-        branchesLabel: 'CN Quận 1, CN Bình Thạnh',
-        badgeLabel: 'Còn 12 ngày',
-      ),
-      WarehouseAlertModel(
-        productName: 'Insulin Lantus 100UI',
-        batchCode: 'LAN240612',
-        quantityLabel: '48 bút',
-        branchesLabel: 'CN Hoàn Kiếm',
-        badgeLabel: 'Còn 8 ngày',
-      ),
-    ];
+  final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  Stream<List<WarehouseAlertModel>> getWarehouseAlerts(String branchId) {
+    return _db
+        .collection('inventories')
+        .where('branch_id', isEqualTo: branchId)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      final alerts = <WarehouseAlertModel>[];
+      final now = DateTime.now();
+      final thirtyDaysLater = now.add(const Duration(days: 30));
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final expiryStr = data['expiry_date'] as String? ?? '';
+        final quantity = int.tryParse(data['quantity'] as String? ?? '') ?? 0;
+        final minStock = int.tryParse(data['min_stock'] as String? ?? '') ?? 10;
+
+        DateTime? expiryDate;
+        if (expiryStr.isNotEmpty) {
+          expiryDate = DateTime.tryParse(expiryStr);
+        }
+
+        bool isExpiringSoon = false;
+        if (expiryDate != null && expiryDate.isBefore(thirtyDaysLater)) {
+          isExpiringSoon = true;
+        }
+
+        bool isLowStock = quantity <= minStock;
+
+        if (isExpiringSoon || isLowStock) {
+          final productDoc = await _db
+              .collection('products')
+              .doc(data['product_id'] as String?)
+              .get();
+
+          final productName = productDoc.data()?['product_name'] as String? ?? '';
+          final daysLeft = expiryDate != null
+              ? expiryDate.difference(now).inDays
+              : 999;
+
+          alerts.add(WarehouseAlertModel(
+            inventoryId: doc.id,
+            productName: productName,
+            batchCode: data['batch_number'] as String? ?? '',
+            quantity: quantity,
+            expiryDate: expiryStr,
+            badgeLabel: isExpiringSoon ? 'Còn $daysLeft ngày' : 'Thiếu ${minStock - quantity}',
+            productId: data['product_id'] as String?,
+            branchId: branchId,
+          ));
+        }
+      }
+
+      alerts.sort((a, b) {
+        if (a.badgeLabel.contains('ngày')) return -1;
+        return 1;
+      });
+
+      return alerts;
+    });
   }
 
-  Future<List<InventoryRequestModel>> fetchReviewRequests() async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return const <InventoryRequestModel>[
-      InventoryRequestModel(
-        code: 'PO-2025-0741',
-        type: InventoryRequestType.inbound,
-        title: 'Nhập hàng',
-        subtitle: 'Purchasing Mgr: Phạm Hùng',
-        date: '10/07/2025',
-        itemsLabel: 'Kháng sinh nhóm Beta-lactam x 12 SKU',
-        totalLabel: '8.400.000đ',
-        status: InventoryRequestStatus.pending,
-      ),
-      InventoryRequestModel(
-        code: 'TK-2025-0188',
-        type: InventoryRequestType.transfer,
-        title: 'Chuyển kho',
-        subtitle: 'Từ CN Bình Thạnh → Quận 1',
-        date: '11/07/2025',
-        itemsLabel: 'Paracetamol 500mg x 200 hộp',
-        totalLabel: '',
-        status: InventoryRequestStatus.pending,
-      ),
-    ];
+  Stream<List<InventoryRequestModel>> getReviewRequests(String branchId) {
+    return _db
+        .collection('orders')
+        .where('branch_id', isEqualTo: branchId)
+        .where('status', whereIn: ['pending', 'approved', 'rejected'])
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        final createdAt = (data['created_at'] as Timestamp?)?.toDate();
+        final dateStr = createdAt != null
+            ? '${createdAt.day.toString().padLeft(2, '0')}/${createdAt.month.toString().padLeft(2, '0')}/${createdAt.year}'
+            : '';
+
+        return InventoryRequestModel(
+          id: doc.id,
+          code: 'PO-${doc.id.substring(0, 8).toUpperCase()}',
+          type: InventoryRequestType.inbound,
+          title: 'Nhập hàng',
+          subtitle: 'Từ nhà cung cấp',
+          date: dateStr,
+          itemsLabel: '${(data['items'] as List?)?.length ?? 0} mặt hàng',
+          totalLabel: '${data['total_amount'] ?? 0}đ'.replaceAll('null', '0'),
+          status: InventoryRequestStatus.values.firstWhere(
+            (e) => e.name == data['status'],
+            orElse: () => InventoryRequestStatus.pending,
+          ),
+        );
+      }).toList();
+    });
   }
 
-  Future<List<StockVerificationModel>> fetchStockVerification() async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return const <StockVerificationModel>[
-      StockVerificationModel(
-        name: 'Amoxicillin 500mg',
-        status: StockVerificationStatus.enough,
-        description: 'Đủ',
-      ),
-      StockVerificationModel(
-        name: 'Augmentin 1g',
-        status: StockVerificationStatus.shortage,
-        description: 'Thiếu 2 hộp',
-      ),
-      StockVerificationModel(
-        name: 'Cephalexin 500mg',
-        status: StockVerificationStatus.notScanned,
-        description: 'Chưa quét',
-      ),
-    ];
+  Stream<List<StockVerificationModel>> getStockVerification(String branchId) {
+    return _db
+        .collection('inventories')
+        .where('branch_id', isEqualTo: branchId)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      final items = <StockVerificationModel>[];
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final quantity = int.tryParse(data['quantity'] as String? ?? '') ?? 0;
+        final minStock = int.tryParse(data['min_stock'] as String? ?? '') ?? 10;
+
+        final productDoc = await _db
+            .collection('products')
+            .doc(data['product_id'] as String?)
+            .get();
+
+        final productName = productDoc.data()?['product_name'] as String? ?? '';
+
+        StockVerificationStatus status;
+        String description;
+
+        if (quantity >= minStock) {
+          status = StockVerificationStatus.enough;
+          description = 'Đủ';
+        } else {
+          status = StockVerificationStatus.shortage;
+          description = 'Thiếu ${minStock - quantity} đơn vị';
+        }
+
+        items.add(StockVerificationModel(
+          inventoryId: doc.id,
+          name: productName,
+          status: status,
+          description: description,
+          expectedQuantity: minStock,
+          actualQuantity: quantity,
+        ));
+      }
+
+      return items;
+    });
+  }
+
+  Future<void> approveRequest(String requestId) async {
+    await _db.collection('orders').doc(requestId).update({
+      'status': 'approved',
+    });
+  }
+
+  Future<void> rejectRequest(String requestId) async {
+    await _db.collection('orders').doc(requestId).update({
+      'status': 'rejected',
+    });
   }
 }
