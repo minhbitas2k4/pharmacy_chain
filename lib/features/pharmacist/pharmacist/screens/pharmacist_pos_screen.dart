@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/constants/app_colors.dart';
-import '../../../core/utils/currency_formatter.dart';
-import '../../../core/widgets/app_button.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/widgets/app_button.dart';
 import '../controllers/pharmacist_flow_controller.dart';
 import '../models/pharmacist_models.dart';
 import 'pharmacist_payment_screen.dart';
 
 class PharmacistPosScreen extends StatelessWidget {
-  const PharmacistPosScreen({
-    super.key,
-    required this.controller,
-  });
+  const PharmacistPosScreen({super.key, required this.controller});
 
   final PharmacistFlowController controller;
 
@@ -41,14 +38,17 @@ class PharmacistPosScreen extends StatelessWidget {
               Expanded(
                 child: controller.cart.isEmpty
                     ? const Center(
-                        child: Text('Giỏ hàng đang trống. Hãy quay lại chọn thuốc.'),
+                        child: Text(
+                          'Giỏ hàng đang trống. Hãy quay lại chọn thuốc.',
+                        ),
                       )
                     : ListView.separated(
                         padding: const EdgeInsets.all(16),
                         itemCount: controller.cart.length,
                         separatorBuilder: (_, _) => const SizedBox(height: 10),
                         itemBuilder: (BuildContext context, int index) {
-                          final PharmacistCartItem item = controller.cart[index];
+                          final PharmacistCartItem item =
+                              controller.cart[index];
                           return Card(
                             child: Padding(
                               padding: const EdgeInsets.all(14),
@@ -64,20 +64,23 @@ class PharmacistPosScreen extends StatelessWidget {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: <Widget>[
                                         Text(
                                           item.productName,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleMedium,
                                         ),
                                         Text('Lô: ${item.batchNumber}'),
                                         Text(
                                           '${CurrencyFormatter.format(item.unitPrice)} × ${item.quantity}',
                                         ),
                                         Text(
-                                          CurrencyFormatter.format(item.lineTotal),
+                                          CurrencyFormatter.format(
+                                            item.lineTotal,
+                                          ),
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w700,
                                             color: AppColors.pharmaGreen,
@@ -92,8 +95,10 @@ class PharmacistPosScreen extends StatelessWidget {
                                         mainAxisSize: MainAxisSize.min,
                                         children: <Widget>[
                                           IconButton(
-                                            onPressed: () => controller
-                                                .decreaseQuantity(item.inventoryId),
+                                            onPressed: () =>
+                                                controller.decreaseQuantity(
+                                                  item.inventoryId,
+                                                ),
                                             icon: const Icon(
                                               Icons.remove_circle_outline,
                                             ),
@@ -105,8 +110,10 @@ class PharmacistPosScreen extends StatelessWidget {
                                             ),
                                           ),
                                           IconButton(
-                                            onPressed: () => controller
-                                                .increaseQuantity(item.inventoryId),
+                                            onPressed: () =>
+                                                controller.increaseQuantity(
+                                                  item.inventoryId,
+                                                ),
                                             icon: const Icon(
                                               Icons.add_circle_outline,
                                             ),
@@ -142,7 +149,9 @@ class PharmacistPosScreen extends StatelessWidget {
                     ),
                     _SummaryRow(
                       label: 'Giảm giá',
-                      value: CurrencyFormatter.format(controller.discountAmount),
+                      value: CurrencyFormatter.format(
+                        controller.discountAmount,
+                      ),
                     ),
                     const Divider(),
                     _SummaryRow(
@@ -185,8 +194,8 @@ class PharmacistPosScreen extends StatelessWidget {
   }
 
   Future<void> _checkInteractions(BuildContext context) async {
-    final List<DrugInteractionWarning> warnings =
-        await controller.checkCartInteractions();
+    final List<DrugInteractionWarning> warnings = await controller
+        .checkCartInteractions();
     if (!context.mounted) return;
 
     await showDialog<void>(
@@ -194,7 +203,9 @@ class PharmacistPosScreen extends StatelessWidget {
       builder: (BuildContext context) => AlertDialog(
         title: const Text('Kiểm tra tương tác thuốc'),
         content: warnings.isEmpty
-            ? const Text('Không phát hiện tương tác thuốc trong dữ liệu hiện có.')
+            ? const Text(
+                'Không phát hiện tương tác thuốc trong dữ liệu hiện có.',
+              )
             : SizedBox(
                 width: double.maxFinite,
                 child: ListView.builder(

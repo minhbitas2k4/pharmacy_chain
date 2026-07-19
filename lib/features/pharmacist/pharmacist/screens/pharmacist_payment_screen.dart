@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/constants/app_colors.dart';
-import '../../../core/utils/currency_formatter.dart';
-import '../../../core/widgets/app_button.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/widgets/app_button.dart';
 import '../controllers/pharmacist_flow_controller.dart';
 import '../models/pharmacist_models.dart';
 import 'pharmacist_invoice_screen.dart';
 
 class PharmacistPaymentScreen extends StatefulWidget {
-  const PharmacistPaymentScreen({
-    super.key,
-    required this.controller,
-  });
+  const PharmacistPaymentScreen({super.key, required this.controller});
 
   final PharmacistFlowController controller;
 
@@ -64,10 +61,11 @@ class _PharmacistPaymentScreenState extends State<PharmacistPaymentScreen> {
                       const SizedBox(height: 6),
                       Text(
                         CurrencyFormatter.format(widget.controller.totalAmount),
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: AppColors.pharmaGreen,
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              color: AppColors.pharmaGreen,
+                              fontWeight: FontWeight.w800,
+                            ),
                       ),
                     ],
                   ),
@@ -176,7 +174,8 @@ class _PharmacistPaymentScreenState extends State<PharmacistPaymentScreen> {
               ),
               const SizedBox(height: 12),
               OutlinedButton.icon(
-                onPressed: () => widget.controller.loadVietQrConfig(force: true),
+                onPressed: () =>
+                    widget.controller.loadVietQrConfig(force: true),
                 icon: const Icon(Icons.refresh),
                 label: const Text('Tải lại cấu hình'),
               ),
@@ -196,32 +195,34 @@ class _PharmacistPaymentScreenState extends State<PharmacistPaymentScreen> {
               child: Image.network(
                 imageUrl,
                 fit: BoxFit.contain,
-                loadingBuilder: (
-                  BuildContext context,
-                  Widget child,
-                  ImageChunkEvent? progress,
-                ) {
-                  if (progress == null) return child;
-                  return const SizedBox(
-                    height: 260,
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                },
-                errorBuilder: (
-                  BuildContext context,
-                  Object error,
-                  StackTrace? stackTrace,
-                ) {
-                  return const SizedBox(
-                    height: 220,
-                    child: Center(
-                      child: Text(
-                        'Không tải được ảnh VietQR. Kiểm tra Internet và cấu hình ngân hàng.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  );
-                },
+                loadingBuilder:
+                    (
+                      BuildContext context,
+                      Widget child,
+                      ImageChunkEvent? progress,
+                    ) {
+                      if (progress == null) return child;
+                      return const SizedBox(
+                        height: 260,
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    },
+                errorBuilder:
+                    (
+                      BuildContext context,
+                      Object error,
+                      StackTrace? stackTrace,
+                    ) {
+                      return const SizedBox(
+                        height: 220,
+                        child: Center(
+                          child: Text(
+                            'Không tải được ảnh VietQR. Kiểm tra Internet và cấu hình ngân hàng.',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      );
+                    },
               ),
             ),
             const Divider(height: 24),

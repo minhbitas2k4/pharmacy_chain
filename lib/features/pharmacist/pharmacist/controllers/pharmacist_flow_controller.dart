@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../../auth/controllers/auth_controller.dart';
+import '../../../auth/controllers/auth_controller.dart';
 import '../models/pharmacist_models.dart';
 import '../services/pharmacist_firestore_service.dart';
 
@@ -59,10 +59,7 @@ class PharmacistFlowController extends ChangeNotifier {
     if (config == null || !config.isConfigured || currentOrderId == null) {
       return null;
     }
-    return config.buildImageUrl(
-      amount: totalAmount,
-      orderId: currentOrderId,
-    );
+    return config.buildImageUrl(amount: totalAmount, orderId: currentOrderId);
   }
 
   String get vietQrTransferContent {
@@ -298,9 +295,7 @@ class PharmacistFlowController extends ChangeNotifier {
       _cart
         ..clear()
         ..addAll(
-          _prescriptionLines.map(
-            (PrescriptionLine line) => line.toCartItem(),
-          ),
+          _prescriptionLines.map((PrescriptionLine line) => line.toCartItem()),
         );
     });
     return result;
@@ -323,7 +318,8 @@ class PharmacistFlowController extends ChangeNotifier {
 
     String? result;
     await _runLoadingAction(() async {
-      final List<DrugInteractionWarning> warnings = await checkCartInteractions();
+      final List<DrugInteractionWarning> warnings =
+          await checkCartInteractions();
       final DrugInteractionWarning? severeWarning = _firstSevereWarning(
         warnings,
       );

@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/app_routes.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/utils/currency_formatter.dart';
-import '../../../core/widgets/app_button.dart';
-import '../../../core/widgets/error_view.dart';
-import '../../../core/widgets/loading_view.dart';
+import '../../../../app/app_routes.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/error_view.dart';
+import '../../../../core/widgets/loading_view.dart';
 import '../controllers/pharmacist_flow_controller.dart';
 import '../models/pharmacist_models.dart';
 
 class PharmacistInvoiceScreen extends StatefulWidget {
-  const PharmacistInvoiceScreen({
-    super.key,
-    required this.controller,
-  });
+  const PharmacistInvoiceScreen({super.key, required this.controller});
 
   final PharmacistFlowController controller;
 
@@ -39,14 +36,16 @@ class _PharmacistInvoiceScreenState extends State<PharmacistInvoiceScreen> {
       body: AnimatedBuilder(
         animation: widget.controller,
         builder: (BuildContext context, Widget? child) {
-          if (widget.controller.isLoading && widget.controller.invoice == null) {
+          if (widget.controller.isLoading &&
+              widget.controller.invoice == null) {
             return const LoadingView(message: 'Đang tạo hóa đơn...');
           }
 
           final PharmacistInvoice? invoice = widget.controller.invoice;
           if (invoice == null) {
             return ErrorView(
-              message: widget.controller.errorMessage ?? 'Không thể tải hóa đơn.',
+              message:
+                  widget.controller.errorMessage ?? 'Không thể tải hóa đơn.',
               onRetry: widget.controller.loadInvoice,
             );
           }
@@ -83,10 +82,7 @@ class _PharmacistInvoiceScreenState extends State<PharmacistInvoiceScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       _InfoRow(label: 'Chi nhánh', value: invoice.branchName),
-                      _InfoRow(
-                        label: 'Dược sĩ',
-                        value: invoice.pharmacistName,
-                      ),
+                      _InfoRow(label: 'Dược sĩ', value: invoice.pharmacistName),
                       _InfoRow(
                         label: 'Thời gian',
                         value:
@@ -131,10 +127,7 @@ class _PharmacistInvoiceScreenState extends State<PharmacistInvoiceScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: <Widget>[
-                      _MoneyRow(
-                        label: 'Tạm tính',
-                        amount: invoice.subtotal,
-                      ),
+                      _MoneyRow(label: 'Tạm tính', amount: invoice.subtotal),
                       _MoneyRow(
                         label: 'Giảm giá',
                         amount: invoice.discountAmount,
@@ -181,9 +174,9 @@ class _PharmacistInvoiceScreenState extends State<PharmacistInvoiceScreen> {
   }
 
   void _showDemoMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 

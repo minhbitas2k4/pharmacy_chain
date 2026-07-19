@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/constants/app_colors.dart';
-import '../../../core/widgets/app_button.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/app_button.dart';
 import '../controllers/pharmacist_flow_controller.dart';
 import '../models/pharmacist_models.dart';
 import 'pharmacist_pos_screen.dart';
 
 class PrescriptionManagementScreen extends StatefulWidget {
-  const PrescriptionManagementScreen({
-    super.key,
-    required this.controller,
-  });
+  const PrescriptionManagementScreen({super.key, required this.controller});
 
   final PharmacistFlowController controller;
 
@@ -100,9 +97,7 @@ class _PrescriptionManagementScreenState
                   const Card(
                     child: Padding(
                       padding: EdgeInsets.all(20),
-                      child: Center(
-                        child: Text('Chưa có thuốc trong đơn.'),
-                      ),
+                      child: Center(child: Text('Chưa có thuốc trong đơn.')),
                     ),
                   )
                 else
@@ -247,7 +242,9 @@ class _PrescriptionManagementScreenState
                 const SizedBox(height: 10),
                 TextField(
                   controller: durationController,
-                  decoration: const InputDecoration(labelText: 'Thời gian dùng'),
+                  decoration: const InputDecoration(
+                    labelText: 'Thời gian dùng',
+                  ),
                 ),
                 const SizedBox(height: 10),
                 TextField(
@@ -312,8 +309,8 @@ class _PrescriptionManagementScreenState
   }
 
   Future<void> _checkInteractions() async {
-    final List<DrugInteractionWarning> warnings =
-        await widget.controller.checkPrescriptionInteractions();
+    final List<DrugInteractionWarning> warnings = await widget.controller
+        .checkPrescriptionInteractions();
     if (!mounted) return;
     _showInteractionDialog(warnings);
   }
@@ -353,7 +350,9 @@ class _PrescriptionManagementScreenState
         return AlertDialog(
           title: const Text('Kết quả kiểm tra tương tác'),
           content: warnings.isEmpty
-              ? const Text('Không phát hiện tương tác thuốc trong dữ liệu hiện có.')
+              ? const Text(
+                  'Không phát hiện tương tác thuốc trong dữ liệu hiện có.',
+                )
               : SizedBox(
                   width: double.maxFinite,
                   child: ListView.separated(
@@ -425,7 +424,10 @@ class _PrescriptionLineCard extends StatelessWidget {
                 IconButton(onPressed: onEdit, icon: const Icon(Icons.edit)),
                 IconButton(
                   onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: AppColors.error,
+                  ),
                 ),
               ],
             ),
