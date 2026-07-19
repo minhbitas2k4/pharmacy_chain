@@ -37,7 +37,10 @@ _cashController.addListener(_recalc);
   }
 
   Future<void> _loadHandoverData(String userId, String workDate) async {
-    await _controller.loadHandover(userId, workDate);
+    await _controller.loadHandover(
+      userId: userId,
+      workDate: workDate,
+    );
     if (mounted) setState(() {});
   }
 

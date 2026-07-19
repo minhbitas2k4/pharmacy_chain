@@ -190,21 +190,7 @@ else
           staff: dashboard.workingStaff[index],
         ),
   ),
-                                  ),
-                                ),
-                              )
-                            else
-                              ListView.separated(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: dashboard.workingStaff.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(height: 12),
-                                itemBuilder: (BuildContext context, int index) =>
-                                    WorkingStaffCard(
-                                      staff: dashboard.workingStaff[index],
-                                    ),
-                              ),
+
                           ],
                         ],
                       ),
