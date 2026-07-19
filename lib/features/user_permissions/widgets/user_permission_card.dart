@@ -69,6 +69,13 @@ class UserPermissionCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           RoleChip(label: user.role),
+          const SizedBox(height: 8),
+          Text(
+            'Thiết bị: ${user.lastSeenDevice} • Hoạt động: ${user.lastActiveAt}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
           const SizedBox(height: 14),
           Row(
             children: <Widget>[

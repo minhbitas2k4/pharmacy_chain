@@ -1,12 +1,62 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../models/dashboard_summary_model.dart';
 
 class DashboardService {
-  Future<DashboardSummaryModel> fetchSummary(DashboardPeriod period) async {
-    await Future<void>.delayed(const Duration(milliseconds: 850));
+  DashboardService({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
+  final FirebaseFirestore _firestore;
+
+  Future<DashboardSummaryModel> fetchSummary(DashboardPeriod period) async {
+    final DocumentSnapshot<Map<String, dynamic>> snapshot = await _firestore
+        .collection('dashboard')
+        .doc(period.name)
+        .get();
+
+    if (!snapshot.exists || snapshot.data() == null) {
+      return _fallbackSummary(period);
+    }
+
+    final Map<String, dynamic> data = snapshot.data()!;
+    return DashboardSummaryModel(
+      period: period,
+      title: data['title']?.toString() ?? 'Dashboard Chuỗi',
+      subtitle: data['subtitle']?.toString() ?? 'Doanh thu & hiệu suất thời gian thực',
+      metrics: _buildMetrics(data['metrics'] as List<dynamic>? ?? const <dynamic>[]),
+      topBranches: _buildTopBranches(data['topBranches'] as List<dynamic>? ?? const <dynamic>[]),
+      lastUpdated: DateTime.tryParse(data['lastUpdated']?.toString() ?? ''),
+    );
+  }
+
+  List<DashboardMetricModel> _buildMetrics(List<dynamic> values) {
+    return values.map((dynamic item) {
+      final Map<String, dynamic> map = Map<String, dynamic>.from(item as Map<String, dynamic>);
+      return DashboardMetricModel(
+        title: map['title']?.toString() ?? '',
+        value: map['value']?.toString() ?? '',
+        change: map['change']?.toString() ?? '',
+        changeLabel: map['changeLabel']?.toString() ?? '',
+        icon: Icons.payments_rounded,
+        color: AppColors.success,
+      );
+    }).toList();
+  }
+
+  List<TopBranchModel> _buildTopBranches(List<dynamic> values) {
+    return values.map((dynamic item) {
+      final Map<String, dynamic> map = Map<String, dynamic>.from(item as Map<String, dynamic>);
+      return TopBranchModel(
+        name: map['name']?.toString() ?? '',
+        city: map['city']?.toString() ?? '',
+        revenue: map['revenue']?.toString() ?? '',
+      );
+    }).toList();
+  }
+
+  DashboardSummaryModel _fallbackSummary(DashboardPeriod period) {
     switch (period) {
       case DashboardPeriod.today:
         return _todaySummary();
@@ -27,7 +77,7 @@ class DashboardService {
           title: 'Doanh thu',
           value: '142,5M',
           change: '▲ 8.3%',
-          changeLabel: 'hôm qua',
+          changeLabel: 'so với hôm qua',
           icon: Icons.payments_rounded,
           color: AppColors.success,
         ),
@@ -35,7 +85,7 @@ class DashboardService {
           title: 'Hóa đơn',
           value: '1,248',
           change: '▲ 5.1%',
-          changeLabel: '',
+          changeLabel: 'tăng tốc',
           icon: Icons.receipt_long_rounded,
           color: AppColors.info,
         ),
@@ -43,14 +93,14 @@ class DashboardService {
           title: 'Lợi nhuận',
           value: '38,2M',
           change: '▲ 2.7%',
-          changeLabel: '',
+          changeLabel: 'biên lợi nhuận',
           icon: Icons.trending_up_rounded,
           color: AppColors.warning,
         ),
         DashboardMetricModel(
           title: 'Chi nhánh',
           value: '12/12',
-          change: '● Hoạt động',
+          change: '● 100% hoạt động',
           changeLabel: '',
           icon: Icons.storefront_rounded,
           color: AppColors.pharmaGreen,

@@ -97,18 +97,32 @@ class _PricingPolicyScreenState extends State<PricingPolicyScreen> {
                               ?.copyWith(color: AppColors.textSecondary),
                         ),
                         const SizedBox(height: 20),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: <Widget>[
+                            Chip(label: Text('Áp dụng toàn hệ thống')),
+                            Chip(label: Text('Nhóm chi nhánh ưu tiên')),
+                            Chip(label: Text('Khuyến mãi quầy')),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
                         Row(
                           children: <Widget>[
                             Expanded(
                               child: ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Mở form tạo chính sách mới')),
+                                ),
                                 child: const Text('+ Thêm chính sách'),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () {},
+                                onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Tra cứu chính sách theo chi nhánh')),
+                                ),
                                 child: const Text('Tra cứu'),
                               ),
                             ),
@@ -135,7 +149,7 @@ class _PricingPolicyScreenState extends State<PricingPolicyScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: policies.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(height: 12),
                             itemBuilder: (BuildContext context, int index) {
                               final PricingPolicyModel policy = policies[index];

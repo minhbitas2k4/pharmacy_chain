@@ -1,26 +1,31 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/inventory_request_model.dart';
 import '../models/stock_verification_model.dart';
 import '../models/warehouse_alert_model.dart';
 
 class InventoryService {
+  InventoryService({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _firestore;
+
   Future<List<WarehouseAlertModel>> fetchWarehouseAlerts() async {
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    return const <WarehouseAlertModel>[
-      WarehouseAlertModel(
-        productName: 'Augmentin 1g',
-        batchCode: 'LOT230701',
-        quantityLabel: '150 hộp',
-        branchesLabel: 'CN Quận 1, CN Bình Thạnh',
-        badgeLabel: 'Còn 12 ngày',
-      ),
-      WarehouseAlertModel(
-        productName: 'Insulin Lantus 100UI',
-        batchCode: 'LAN240612',
-        quantityLabel: '48 bút',
-        branchesLabel: 'CN Hoàn Kiếm',
-        badgeLabel: 'Còn 8 ngày',
-      ),
-    ];
+    final QuerySnapshot<Map<String, dynamic>> snapshot = await _firestore
+        .collection('warehouse_alerts')
+        .orderBy('createdAt', descending: true)
+        .get();
+
+    return snapshot.docs.map((QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+      final Map<String, dynamic> data = Map<String, dynamic>.from(doc.data());
+      return WarehouseAlertModel(
+        productName: data['productName']?.toString() ?? '',
+        batchCode: data['batchCode']?.toString() ?? '',
+        quantityLabel: data['quantityLabel']?.toString() ?? '',
+        branchesLabel: data['branchesLabel']?.toString() ?? '',
+        badgeLabel: data['badgeLabel']?.toString() ?? '',
+      );
+    }).toList();
   }
 
   Future<List<InventoryRequestModel>> fetchReviewRequests() async {

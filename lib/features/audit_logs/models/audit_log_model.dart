@@ -27,6 +27,8 @@ class AuditLogModel {
     required this.description,
     required this.status,
     required this.filter,
+    this.device = 'Android App',
+    this.location = 'Hà Nội',
   });
 
   final String actionType;
@@ -35,6 +37,8 @@ class AuditLogModel {
   final String description;
   final String status;
   final AuditFilter filter;
+  final String device;
+  final String location;
 
   Color get statusColor {
     switch (status) {

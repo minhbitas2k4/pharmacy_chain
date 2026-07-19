@@ -38,18 +38,27 @@ class UserPermissionController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleLock(AppUserModel user) {
+  Future<void> toggleLock(AppUserModel user) async {
+    final bool nextState = !user.isLocked;
+    await _userPermissionService.updateUserLock(
+      username: user.username,
+      isLocked: nextState,
+    );
     _users = _users
         .map(
           (AppUserModel item) => item.username == user.username
-              ? item.copyWith(isLocked: !item.isLocked)
+              ? item.copyWith(isLocked: nextState)
               : item,
         )
         .toList();
     notifyListeners();
   }
 
-  void updateRole(AppUserModel user, String role) {
+  Future<void> updateRole(AppUserModel user, String role) async {
+    await _userPermissionService.updateUserRole(
+      username: user.username,
+      role: role,
+    );
     _users = _users
         .map(
           (AppUserModel item) =>

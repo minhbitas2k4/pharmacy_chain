@@ -51,6 +51,13 @@ class AuditLogCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(log.description),
+          const SizedBox(height: 8),
+          Text(
+            'Thiết bị: ${log.device} • Vị trí: ${log.location}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
         ],
       ),
     );
