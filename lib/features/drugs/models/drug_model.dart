@@ -15,6 +15,7 @@ extension DrugFilterX on DrugFilter {
 
 class DrugModel {
   const DrugModel({
+    this.id,
     required this.name,
     required this.activeIngredient,
     required this.strength,
@@ -24,6 +25,7 @@ class DrugModel {
     required this.filter,
   });
 
+  final String? id;
   final String name;
   final String activeIngredient;
   final String strength;
@@ -31,4 +33,38 @@ class DrugModel {
   final String packaging;
   final String price;
   final DrugFilter filter;
+
+  DrugModel copyWith({
+    String? id,
+    String? name,
+    String? activeIngredient,
+    String? strength,
+    String? dosageForm,
+    String? packaging,
+    String? price,
+    DrugFilter? filter,
+  }) {
+    return DrugModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      activeIngredient: activeIngredient ?? this.activeIngredient,
+      strength: strength ?? this.strength,
+      dosageForm: dosageForm ?? this.dosageForm,
+      packaging: packaging ?? this.packaging,
+      price: price ?? this.price,
+      filter: filter ?? this.filter,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'product_name': name,
+      'active_ingredient': activeIngredient,
+      'dosage': strength,
+      'indications': dosageForm,
+      'packaging': packaging,
+      'price': price,
+      'shift_location': filter == DrugFilter.prescription ? 'Quay B' : 'Quay A',
+    };
+  }
 }

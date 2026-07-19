@@ -68,6 +68,15 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                           selectedFilter: _controller.selectedFilter,
                           onChanged: _controller.selectFilter,
                         ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: const <Widget>[
+                            Chip(label: Text('Lọc theo thời gian: 24h qua')),
+                            Chip(label: Text('Thiết bị: Tất cả')),
+                          ],
+                        ),
                         const SizedBox(height: 20),
                         if (_controller.isLoading)
                           const Padding(
@@ -87,7 +96,7 @@ class _AuditLogScreenState extends State<AuditLogScreen> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: logs.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(height: 12),
                             itemBuilder: (BuildContext context, int index) {
                               return AuditLogCard(log: logs[index]);

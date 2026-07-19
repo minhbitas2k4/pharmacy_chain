@@ -17,6 +17,7 @@ import '../features/user_permissions/screens/user_permission_screen.dart';
 import '../features/audit_logs/screens/audit_log_screen.dart';
 import '../features/system_config/screens/system_config_screen.dart';
 import '../features/notifications/screens/maintenance_notice_screen.dart';
+import '../features/notifications/screens/notification_list_screen.dart';
 import '../features/pricing_policy/screens/pricing_policy_screen.dart';
 import '../features/drugs/screens/drug_catalog_screen.dart';
 import '../features/pharmacist/screens/pharmacist_drug_lookup_screen.dart';
@@ -78,6 +79,7 @@ class AppRoutes {
       drugs,
       warehouseAlert,
       inventory,
+      notifications,
     ],
     AppRoles.branchManager: [
       branch,
@@ -115,9 +117,7 @@ class AppRoutes {
   };
 
   static String getHomeRoute(String role) {
-    // If it's a manager role that has a dashboard, go there
-    if (role == AppRoles.chainManager) return chainDashboard;
-    // Otherwise, all roles go to the common Home/Hub screen which will be filtered
+    // All roles go to the common Home/Hub screen which will be filtered
     return home;
   }
 
@@ -142,7 +142,7 @@ class AppRoutes {
     auditLogs: (_) => const AuditLogScreen(),
     systemConfig: (_) => const SystemConfigScreen(),
     maintenanceNotice: (_) => const MaintenanceNoticeScreen(),
-    notifications: (_) => const MaintenanceNoticeScreen(),
+    notifications: (_) => const NotificationListScreen(),
     pricingPolicy: (_) => const PricingPolicyScreen(),
     drugCatalog: (_) => const DrugCatalogScreen(),
     drugLookup: (_) => const PharmacistDrugLookupScreen(),

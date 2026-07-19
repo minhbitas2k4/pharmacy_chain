@@ -190,10 +190,13 @@ class _SystemConfigScreenState extends State<SystemConfigScreen> {
                           const SizedBox(height: 16),
                           ConfigSectionCard(
                             title: 'Định dạng hóa đơn',
-                            child: Text(
-                              _controller.config?.invoiceFormat ??
-                                  'Định dạng hóa đơn chuẩn',
-                              style: Theme.of(context).textTheme.bodyMedium,
+                            child: TextFormField(
+                              controller: _controller.invoiceFormatController,
+                              maxLines: 2,
+                              decoration: const InputDecoration(
+                                labelText: 'Mẫu hóa đơn',
+                                hintText: 'VD: INV/{yyyy}/{nnn}',
+                              ),
                             ),
                           ),
                           const SizedBox(height: 20),

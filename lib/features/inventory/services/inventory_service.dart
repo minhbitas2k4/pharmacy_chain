@@ -5,12 +5,17 @@ import '../models/stock_verification_model.dart';
 import '../models/warehouse_alert_model.dart';
 
 class InventoryService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  InventoryService({FirebaseFirestore? firestore})
+      : _db = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _db;
 
   Stream<List<WarehouseAlertModel>> getWarehouseAlerts(String branchId) {
-    return _db
-        .collection('inventories')
-        .where('branch_id', isEqualTo: branchId)
+    Query<Map<String, dynamic>> query = _db.collection('inventories');
+    if (branchId.isNotEmpty) {
+      query = query.where('branch_id', isEqualTo: branchId);
+    }
+    return query
         .snapshots()
         .asyncMap((snapshot) async {
       final alerts = <WarehouseAlertModel>[];
@@ -54,7 +59,7 @@ class InventoryService {
             expiryDate: expiryStr,
             badgeLabel: isExpiringSoon ? 'Còn $daysLeft ngày' : 'Thiếu ${minStock - quantity}',
             productId: data['product_id'] as String?,
-            branchId: branchId,
+            branchId: data['branch_id'] as String? ?? branchId,
           ));
         }
       }
@@ -68,44 +73,50 @@ class InventoryService {
     });
   }
 
-  Stream<List<InventoryRequestModel>> getReviewRequests(String branchId) {
-    return _db
-        .collection('orders')
-        .where('branch_id', isEqualTo: branchId)
-        .snapshots()
-        .map((snapshot) {
-      final validStatuses = {'pending', 'approved', 'rejected'};
-      return snapshot.docs.where((doc) {
-        return validStatuses.contains(doc.data()['status']);
-      }).map((doc) {
-        final data = doc.data();
-        final createdAt = (data['created_at'] as Timestamp?)?.toDate();
-        final dateStr = createdAt != null
-            ? '${createdAt.day.toString().padLeft(2, '0')}/${createdAt.month.toString().padLeft(2, '0')}/${createdAt.year}'
-            : '';
+Stream<List<InventoryRequestModel>> getReviewRequests(String branchId) {
+  Query<Map<String, dynamic>> query = _db.collection('orders');
 
-        return InventoryRequestModel(
-          id: doc.id,
-          code: 'PO-${doc.id.substring(0, 8).toUpperCase()}',
-          type: InventoryRequestType.inbound,
-          title: 'Nhập hàng',
-          subtitle: 'Từ nhà cung cấp',
-          date: dateStr,
-          itemsLabel: '${(data['items'] as List?)?.length ?? 0} mặt hàng',
-          totalLabel: '${data['total_amount'] ?? 0}đ'.replaceAll('null', '0'),
-          status: InventoryRequestStatus.values.firstWhere(
-            (e) => e.name == data['status'],
-            orElse: () => InventoryRequestStatus.pending,
-          ),
-        );
-      }).toList();
-    });
+  if (branchId.isNotEmpty) {
+    query = query.where('branch_id', isEqualTo: branchId);
   }
 
+  return query
+      .where('status', whereIn: ['pending', 'approved', 'rejected'])
+      .snapshots()
+      .map((snapshot) {
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      final createdAt = (data['created_at'] as Timestamp?)?.toDate();
+
+      final dateStr = createdAt != null
+          ? '${createdAt.day.toString().padLeft(2, '0')}/${createdAt.month.toString().padLeft(2, '0')}/${createdAt.year}'
+          : '';
+
+      return InventoryRequestModel(
+        id: doc.id,
+        code: 'PO-${doc.id.substring(0, 8).toUpperCase()}',
+        type: InventoryRequestType.inbound,
+        title: 'Nhập hàng',
+        subtitle: 'Từ nhà cung cấp',
+        date: dateStr,
+        itemsLabel: '${(data['items'] as List?)?.length ?? 0} mặt hàng',
+        totalLabel:
+            '${data['total_amount'] ?? 0}đ'.replaceAll('null', '0'),
+        status: InventoryRequestStatus.values.firstWhere(
+          (e) => e.name == data['status'],
+          orElse: () => InventoryRequestStatus.pending,
+        ),
+      );
+    }).toList();
+  });
+}
+
   Stream<List<StockVerificationModel>> getStockVerification(String branchId) {
-    return _db
-        .collection('inventories')
-        .where('branch_id', isEqualTo: branchId)
+    Query<Map<String, dynamic>> query = _db.collection('inventories');
+    if (branchId.isNotEmpty) {
+      query = query.where('branch_id', isEqualTo: branchId);
+    }
+    return query
         .snapshots()
         .asyncMap((snapshot) async {
       final items = <StockVerificationModel>[];

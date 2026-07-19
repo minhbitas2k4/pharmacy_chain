@@ -40,7 +40,7 @@ class _StockInOutScreenState extends State<StockInOutScreen> {
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _controller,
-          builder: (_, __) {
+          builder: (_, _) {
             return Column(
               children: [
                 const AppHeader(),

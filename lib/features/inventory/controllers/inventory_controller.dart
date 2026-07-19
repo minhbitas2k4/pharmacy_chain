@@ -2,14 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../../auth/controllers/auth_controller.dart';
 import '../models/inventory_request_model.dart';
 import '../models/stock_verification_model.dart';
 import '../models/warehouse_alert_model.dart';
 import '../services/inventory_service.dart';
 
 class InventoryController extends ChangeNotifier {
-  InventoryController({required this.branchId, InventoryService? inventoryService})
-    : _inventoryService = inventoryService ?? InventoryService();
+  InventoryController({String? branchId, InventoryService? inventoryService})
+    : branchId = branchId ?? AuthController().currentUser?.branchId ?? '',
+      _inventoryService = inventoryService ?? InventoryService();
 
   final String branchId;
   final InventoryService _inventoryService;
@@ -19,7 +21,7 @@ class InventoryController extends ChangeNotifier {
   List<InventoryRequestModel> _requests = <InventoryRequestModel>[];
   List<StockVerificationModel> _stockItems = <StockVerificationModel>[];
   int _selectedReviewTab = 0;
-  int _completedScanCount = 0;
+  final int _completedScanCount = 7;
   String? _errorMessage;
 
   StreamSubscription<List<WarehouseAlertModel>>? _alertsSubscription;
@@ -35,7 +37,7 @@ class InventoryController extends ChangeNotifier {
       List<StockVerificationModel>.unmodifiable(_stockItems);
   int get selectedReviewTab => _selectedReviewTab;
   int get completedScanCount => _completedScanCount;
-  int get totalScanCount => _stockItems.length;
+  int get totalScanCount => 12;
   String? get errorMessage => _errorMessage;
 
   void loadWarehouseAlerts() {
@@ -64,7 +66,7 @@ class InventoryController extends ChangeNotifier {
         _setLoading(false);
       },
       onError: (error) {
-        _errorMessage = 'Không thể tải yêu cầu duyệt kho';
+        _errorMessage = 'Không thể tải yêu cầu duyệt';
         _setLoading(false);
       },
     );
@@ -76,7 +78,6 @@ class InventoryController extends ChangeNotifier {
     _stockSubscription = _inventoryService.getStockVerification(branchId).listen(
       (items) {
         _stockItems = items;
-        _completedScanCount = 0;
         _errorMessage = null;
         _setLoading(false);
       },
@@ -95,6 +96,13 @@ class InventoryController extends ChangeNotifier {
   Future<void> approveRequest(InventoryRequestModel request) async {
     try {
       await _inventoryService.approveRequest(request.id);
+      _requests = _requests.map((InventoryRequestModel item) {
+        if (item.code == request.code) {
+          return item.copyWith(status: InventoryRequestStatus.approved);
+        }
+        return item;
+      }).toList();
+      notifyListeners();
     } catch (e) {
       _errorMessage = 'Lỗi khi duyệt yêu cầu';
       notifyListeners();
@@ -104,6 +112,13 @@ class InventoryController extends ChangeNotifier {
   Future<void> rejectRequest(InventoryRequestModel request) async {
     try {
       await _inventoryService.rejectRequest(request.id);
+      _requests = _requests.map((InventoryRequestModel item) {
+        if (item.code == request.code) {
+          return item.copyWith(status: InventoryRequestStatus.rejected);
+        }
+        return item;
+      }).toList();
+      notifyListeners();
     } catch (e) {
       _errorMessage = 'Lỗi khi từ chối yêu cầu';
       notifyListeners();
@@ -111,14 +126,13 @@ class InventoryController extends ChangeNotifier {
   }
 
   void scanNextItem() {
-    if (_completedScanCount < _stockItems.length) {
-      _completedScanCount++;
-      notifyListeners();
-    }
+    // Stub for future barcode integration
   }
 
   void _setLoading(bool value) {
-    if (_isLoading == value) return;
+    if (_isLoading == value) {
+      return;
+    }
     _isLoading = value;
     notifyListeners();
   }

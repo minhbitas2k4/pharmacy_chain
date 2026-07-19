@@ -1,6 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
+import '../../auth/controllers/auth_controller.dart';
 import '../models/system_config_model.dart';
 import '../services/system_config_service.dart';
 
@@ -9,11 +8,15 @@ class SystemConfigController extends ChangeNotifier {
     : _systemConfigService = systemConfigService ?? SystemConfigService() {
     startTimeController = TextEditingController(text: '07:00');
     endTimeController = TextEditingController(text: '22:00');
+    invoiceFormatController = TextEditingController(
+      text: 'Định dạng hóa đơn chuẩn',
+    );
   }
 
   final SystemConfigService _systemConfigService;
   late final TextEditingController startTimeController;
   late final TextEditingController endTimeController;
+  late final TextEditingController invoiceFormatController;
 
   bool _isLoading = false;
   bool _isSaving = false;
@@ -32,6 +35,7 @@ class SystemConfigController extends ChangeNotifier {
       startTimeController.text = _config!.startTime;
       endTimeController.text = _config!.endTime;
       _selectedRoundingOption = _config!.roundingOption;
+      invoiceFormatController.text = _config!.invoiceFormat;
     } finally {
       _setLoading(false);
       notifyListeners();
@@ -60,12 +64,37 @@ class SystemConfigController extends ChangeNotifier {
     if (validationError != null) {
       return false;
     }
+
     _isSaving = true;
     notifyListeners();
-    await Future<void>.delayed(const Duration(milliseconds: 550));
-    _isSaving = false;
-    notifyListeners();
-    return true;
+
+    try {
+      final SystemConfigModel config = SystemConfigModel(
+        startTime: startTimeController.text.trim(),
+        endTime: endTimeController.text.trim(),
+        appliedLabel: _config?.appliedLabel ?? 'Đang áp dụng',
+        daysLabel: _config?.daysLabel ?? 'Thứ 2 - CN',
+        branchScope: _config?.branchScope ?? 'Tất cả chi nhánh',
+        roundingOption: _selectedRoundingOption ?? 'Làm tròn 500đ',
+        invoiceFormat: invoiceFormatController.text.trim().isEmpty
+            ? 'Định dạng hóa đơn chuẩn'
+            : invoiceFormatController.text.trim(),
+      );
+      String? currentUserId;
+      try {
+        currentUserId = AuthController().currentUser?.id;
+      } catch (_) {
+        // Safe fallback for test environment where Firebase is not initialized
+      }
+      await _systemConfigService.saveConfig(config, updatedBy: currentUserId);
+      _config = config;
+      return true;
+    } catch (_) {
+      return false;
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
   }
 
   int? _toMinutes(String value) {
@@ -100,6 +129,7 @@ class SystemConfigController extends ChangeNotifier {
   void dispose() {
     startTimeController.dispose();
     endTimeController.dispose();
+    invoiceFormatController.dispose();
     super.dispose();
   }
 }

@@ -11,6 +11,8 @@ class AuditLogService {
         description: 'Admin đăng nhập thành công',
         status: 'success',
         filter: AuditFilter.login,
+        device: 'Android App',
+        location: 'Hà Nội',
       ),
       AuditLogModel(
         actionType: 'Cấu hình',
@@ -19,6 +21,8 @@ class AuditLogService {
         description: 'Cập nhật cấu hình hệ thống',
         status: 'success',
         filter: AuditFilter.config,
+        device: 'Web Admin',
+        location: 'Đà Nẵng',
       ),
       AuditLogModel(
         actionType: 'Kho',
@@ -27,6 +31,8 @@ class AuditLogService {
         description: 'Duyệt yêu cầu nhập kho PO-2025-0741',
         status: 'warning',
         filter: AuditFilter.inventory,
+        device: 'iOS App',
+        location: 'TP.HCM',
       ),
       AuditLogModel(
         actionType: 'Giá',
@@ -35,6 +41,8 @@ class AuditLogService {
         description: 'Cập nhật giá thuốc Amoxicillin 500mg',
         status: 'success',
         filter: AuditFilter.price,
+        device: 'Web Admin',
+        location: 'Hà Nội',
       ),
       AuditLogModel(
         actionType: 'Đăng nhập',
@@ -43,6 +51,8 @@ class AuditLogService {
         description: 'Đăng nhập thất bại tài khoản cashier01',
         status: 'error',
         filter: AuditFilter.login,
+        device: 'Android App',
+        location: 'Bình Dương',
       ),
     ];
   }

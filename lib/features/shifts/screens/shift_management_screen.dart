@@ -133,49 +133,42 @@ class _ShiftManagementScreenState extends State<ShiftManagementScreen> {
                               message: 'Đang tải ca làm việc...',
                             ),
                           )
-                        else if (_controller.selectedTab == 0)
-                          _controller.weeklySchedule.isEmpty
-                              ? Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 40,
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.event_busy,
-                                        size: 48,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        'Không có ca nào trong khoảng này',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.textPrimary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : ListView.separated(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount:
-                                      _controller.weeklySchedule.length,
-                                  separatorBuilder: (_, __) =>
-                                      const SizedBox(height: 12),
-                                  itemBuilder:
-                                      (BuildContext context, int index) =>
-                                          ShiftScheduleCard(
-                                            shift: _controller
-                                                .weeklySchedule[index],
-                                            showDate:
-                                                _controller.selectedPeriod !=
-                                                    ShiftPeriod.day,
-                                          ),
-                                )
+else if (_controller.selectedTab == 0)
+  _controller.weeklySchedule.isEmpty
+      ? Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.event_busy,
+                size: 48,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Không có ca nào trong khoảng này',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        )
+      : ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _controller.weeklySchedule.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          itemBuilder: (BuildContext context, int index) =>
+              ShiftScheduleCard(
+                shift: _controller.weeklySchedule[index],
+                showDate:
+                    _controller.selectedPeriod != ShiftPeriod.day,
+              ),
+        )
                         else if (_controller.selectedTab == 1)
                           _controller.changeRequests.isEmpty
                               ? Padding(

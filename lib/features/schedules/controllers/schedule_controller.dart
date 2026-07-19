@@ -1,54 +1,45 @@
-import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 
+import '../../auth/controllers/auth_controller.dart';
+import '../../shifts/models/shift_model.dart';
 import '../models/work_schedule_model.dart';
 import '../services/schedule_service.dart';
 
 class ScheduleController extends ChangeNotifier {
-  ScheduleController({required this.branchId, ScheduleService? scheduleService})
+  ScheduleController({ScheduleService? scheduleService})
     : _scheduleService = scheduleService ?? ScheduleService();
 
-  final String branchId;
   final ScheduleService _scheduleService;
   bool _isLoading = false;
   int _selectedIndex = 0;
-  List<WorkScheduleModel> _schedules = <WorkScheduleModel>[];
-  String? _errorMessage;
-
-  StreamSubscription<List<WorkScheduleModel>>? _subscription;
+  List<WorkScheduleModel> _month = <WorkScheduleModel>[];
+  final List<ShiftModel> _today = <ShiftModel>[];
+  final List<ShiftModel> _extra = <ShiftModel>[];
 
   bool get isLoading => _isLoading;
   int get selectedIndex => _selectedIndex;
-  List<WorkScheduleModel> get schedules =>
-      List<WorkScheduleModel>.unmodifiable(_schedules);
-  String? get errorMessage => _errorMessage;
+  List<WorkScheduleModel> get month =>
+      List<WorkScheduleModel>.unmodifiable(_month);
+  List<ShiftModel> get todayShifts =>
+      List<ShiftModel>.unmodifiable([..._today, ..._extra]);
 
-  List<WorkScheduleModel> getSchedulesForDay(int day) {
+  void load({String? branchId, String? month}) {
+    final finalBranchId = branchId ?? AuthController().currentUser?.branchId ?? 'branch_hcm_q1';
     final now = DateTime.now();
-    final month = now.month.toString().padLeft(2, '0');
-    final year = now.year;
-    final dateStr = '$year-$month-${day.toString().padLeft(2, '0')}';
-    return _schedules.where((s) => s.workDate == dateStr).toList();
-  }
-
-  void loadSchedules() {
-    _setLoading(true);
-    final now = DateTime.now();
-    final month = '${now.year}-${now.month.toString().padLeft(2, '0')}';
-
-    _subscription?.cancel();
-    _subscription = _scheduleService.getSchedules(branchId, month).listen(
-      (schedules) {
-        _schedules = schedules;
-        _errorMessage = null;
-        _setLoading(false);
-      },
-      onError: (error) {
-        _errorMessage = 'Không thể tải lịch làm việc';
-        _setLoading(false);
-      },
-    );
+    final finalMonth = month ?? '${now.year}-${now.month.toString().padLeft(2, '0')}';
+    
+    _isLoading = true;
+    notifyListeners();
+    try {
+      _scheduleService.getSchedules(finalBranchId, finalMonth).listen((schedules) {
+        _month = schedules;
+        _isLoading = false;
+        notifyListeners();
+      });
+    } catch (e) {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void selectDate(int index) {
@@ -56,35 +47,14 @@ class ScheduleController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addSchedule({
-    required String userId,
-    required String shiftId,
-    required String workDate,
-    String? notes,
-  }) async {
-    try {
-      await _scheduleService.addSchedule(
-        branchId: branchId,
-        userId: userId,
-        shiftId: shiftId,
-        workDate: workDate,
-        notes: notes,
-      );
-    } catch (e) {
-      _errorMessage = 'Lỗi khi thêm lịch làm việc';
-      notifyListeners();
-    }
-  }
-
-  void _setLoading(bool value) {
-    if (_isLoading == value) return;
-    _isLoading = value;
+  void addShift(String name, String start, String end) {
+    _extra.add(ShiftModel(
+      id: DateTime.now().toString(),
+      name: name,
+      startTime: start,
+      endTime: end,
+      status: 'Ca mới',
+    ));
     notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
   }
 }

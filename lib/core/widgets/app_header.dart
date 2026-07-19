@@ -40,7 +40,9 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          onPressed: onNotificationsPressed,
+          onPressed: onNotificationsPressed ?? () {
+            Navigator.pushNamed(context, AppRoutes.notifications);
+          },
           icon: const Icon(Icons.notifications_none_outlined),
         ),
         IconButton(

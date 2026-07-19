@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/status_badge.dart';
 import '../models/app_user_model.dart';
+import '../../auth/models/user_model.dart';
 import 'role_chip.dart';
 
 class UserPermissionCard extends StatelessWidget {
@@ -68,7 +69,14 @@ class UserPermissionCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          RoleChip(label: user.role),
+          RoleChip(label: UserModel.getRoleDisplayName(user.role)),
+          const SizedBox(height: 8),
+          Text(
+            'Thiết bị: ${user.lastSeenDevice} • Hoạt động: ${user.lastActiveAt}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
           const SizedBox(height: 14),
           Row(
             children: <Widget>[
