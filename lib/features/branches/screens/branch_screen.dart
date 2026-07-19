@@ -4,6 +4,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/loading_view.dart';
+import '../../auth/controllers/auth_controller.dart';
 import '../controllers/branch_controller.dart';
 import '../widgets/branch_metric_card.dart';
 import '../widgets/working_staff_card.dart';
@@ -21,7 +22,8 @@ class _BranchScreenState extends State<BranchScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = BranchController();
+    final branchId = AuthController().currentUser?.branchId ?? '';
+    _controller = BranchController(branchId: branchId);
     _controller.loadDashboard();
   }
 
@@ -45,7 +47,9 @@ class _BranchScreenState extends State<BranchScreen> {
                 const AppHeader(),
                 Expanded(
                   child: RefreshIndicator(
-                    onRefresh: _controller.loadDashboard,
+                    onRefresh: () async {
+                      _controller.loadDashboard();
+                    },
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(20),

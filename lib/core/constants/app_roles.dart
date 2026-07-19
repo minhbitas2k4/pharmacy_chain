@@ -1,10 +1,10 @@
 class AppRoles {
-  static const systemAdmin = "SystemAdmin";
-  static const chainManager = 'ChainManager';
-  static const branchManager = 'BranchManager';
-  static const purchasingManager = "PurchasingManager";
-  static const pharmacist = 'Pharmacist';
-  static const cashier = 'Cashier';
-  static const warehouseStaff = 'WarehouseStaff';
-  static const hrAdmin = "HrAdmin";
+  static const systemAdmin = "system_admin";
+  static const chainManager = 'chain_manager';
+  static const branchManager = 'branch_manager';
+  static const purchasingManager = "purchasing_manager";
+  static const pharmacist = 'pharmacist';
+  static const cashier = 'cashier';
+  static const warehouseStaff = 'warehouse_staff';
+  static const hrAdmin = "hr_admin";
 }

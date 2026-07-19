@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../models/inventory_request_model.dart';
@@ -6,9 +8,10 @@ import '../models/warehouse_alert_model.dart';
 import '../services/inventory_service.dart';
 
 class InventoryController extends ChangeNotifier {
-  InventoryController({InventoryService? inventoryService})
+  InventoryController({required this.branchId, InventoryService? inventoryService})
     : _inventoryService = inventoryService ?? InventoryService();
 
+  final String branchId;
   final InventoryService _inventoryService;
 
   bool _isLoading = false;
@@ -16,7 +19,12 @@ class InventoryController extends ChangeNotifier {
   List<InventoryRequestModel> _requests = <InventoryRequestModel>[];
   List<StockVerificationModel> _stockItems = <StockVerificationModel>[];
   int _selectedReviewTab = 0;
-  int _completedScanCount = 7;
+  int _completedScanCount = 0;
+  String? _errorMessage;
+
+  StreamSubscription<List<WarehouseAlertModel>>? _alertsSubscription;
+  StreamSubscription<List<InventoryRequestModel>>? _requestsSubscription;
+  StreamSubscription<List<StockVerificationModel>>? _stockSubscription;
 
   bool get isLoading => _isLoading;
   List<WarehouseAlertModel> get alerts =>
@@ -27,36 +35,56 @@ class InventoryController extends ChangeNotifier {
       List<StockVerificationModel>.unmodifiable(_stockItems);
   int get selectedReviewTab => _selectedReviewTab;
   int get completedScanCount => _completedScanCount;
-  int get totalScanCount => 12;
+  int get totalScanCount => _stockItems.length;
+  String? get errorMessage => _errorMessage;
 
-  Future<void> loadWarehouseAlerts() async {
+  void loadWarehouseAlerts() {
     _setLoading(true);
-    try {
-      _alerts = await _inventoryService.fetchWarehouseAlerts();
-    } finally {
-      _setLoading(false);
-      notifyListeners();
-    }
+    _alertsSubscription?.cancel();
+    _alertsSubscription = _inventoryService.getWarehouseAlerts(branchId).listen(
+      (alerts) {
+        _alerts = alerts;
+        _errorMessage = null;
+        _setLoading(false);
+      },
+      onError: (error) {
+        _errorMessage = 'Không thể tải cảnh báo kho';
+        _setLoading(false);
+      },
+    );
   }
 
-  Future<void> loadReviewRequests() async {
+  void loadReviewRequests() {
     _setLoading(true);
-    try {
-      _requests = await _inventoryService.fetchReviewRequests();
-    } finally {
-      _setLoading(false);
-      notifyListeners();
-    }
+    _requestsSubscription?.cancel();
+    _requestsSubscription = _inventoryService.getReviewRequests(branchId).listen(
+      (requests) {
+        _requests = requests;
+        _errorMessage = null;
+        _setLoading(false);
+      },
+      onError: (error) {
+        _errorMessage = 'Không thể tải yêu cầu duyệt kho';
+        _setLoading(false);
+      },
+    );
   }
 
-  Future<void> loadStockVerification() async {
+  void loadStockVerification() {
     _setLoading(true);
-    try {
-      _stockItems = await _inventoryService.fetchStockVerification();
-    } finally {
-      _setLoading(false);
-      notifyListeners();
-    }
+    _stockSubscription?.cancel();
+    _stockSubscription = _inventoryService.getStockVerification(branchId).listen(
+      (items) {
+        _stockItems = items;
+        _completedScanCount = 0;
+        _errorMessage = null;
+        _setLoading(false);
+      },
+      onError: (error) {
+        _errorMessage = 'Không thể tải dữ liệu kiểm kho';
+        _setLoading(false);
+      },
+    );
   }
 
   void selectReviewTab(int index) {
@@ -64,38 +92,42 @@ class InventoryController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void approveRequest(InventoryRequestModel request) {
-    _requests = _requests.map((InventoryRequestModel item) {
-      if (item.code == request.code) {
-        return item.copyWith(status: InventoryRequestStatus.approved);
-      }
-      return item;
-    }).toList();
-    notifyListeners();
+  Future<void> approveRequest(InventoryRequestModel request) async {
+    try {
+      await _inventoryService.approveRequest(request.id);
+    } catch (e) {
+      _errorMessage = 'Lỗi khi duyệt yêu cầu';
+      notifyListeners();
+    }
   }
 
-  void rejectRequest(InventoryRequestModel request) {
-    _requests = _requests.map((InventoryRequestModel item) {
-      if (item.code == request.code) {
-        return item.copyWith(status: InventoryRequestStatus.rejected);
-      }
-      return item;
-    }).toList();
-    notifyListeners();
+  Future<void> rejectRequest(InventoryRequestModel request) async {
+    try {
+      await _inventoryService.rejectRequest(request.id);
+    } catch (e) {
+      _errorMessage = 'Lỗi khi từ chối yêu cầu';
+      notifyListeners();
+    }
   }
 
   void scanNextItem() {
-    // if (_completedScanCount < _totalScanCount) {
-    //   _completedScanCount++;
-    //   notifyListeners();
-    // }
+    if (_completedScanCount < _stockItems.length) {
+      _completedScanCount++;
+      notifyListeners();
+    }
   }
 
   void _setLoading(bool value) {
-    if (_isLoading == value) {
-      return;
-    }
+    if (_isLoading == value) return;
     _isLoading = value;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _alertsSubscription?.cancel();
+    _requestsSubscription?.cancel();
+    _stockSubscription?.cancel();
+    super.dispose();
   }
 }

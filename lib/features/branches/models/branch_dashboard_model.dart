@@ -1,5 +1,6 @@
 class BranchDashboardModel {
   const BranchDashboardModel({
+    required this.branchId,
     required this.revenueToday,
     required this.invoices,
     required this.counterTitle,
@@ -8,6 +9,7 @@ class BranchDashboardModel {
     required this.workingStaff,
   });
 
+  final String branchId;
   final String revenueToday;
   final String invoices;
   final String counterTitle;

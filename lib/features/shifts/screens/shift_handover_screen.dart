@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_header.dart';
+import '../../auth/controllers/auth_controller.dart';
 import '../controllers/shift_controller.dart';
 
 class ShiftHandoverScreen extends StatefulWidget {
@@ -21,15 +22,23 @@ class _ShiftHandoverScreenState extends State<ShiftHandoverScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = ShiftController();
-    _controller.loadHandover();
-    _cashController.text = '25000000';
+    final user = AuthController().currentUser;
+    final branchId = user?.branchId ?? '';
+    final userId = user?.id ?? '';
+    final workDate = DateTime.now().toIso8601String().substring(0, 10);
+
+    _controller = ShiftController(branchId: branchId);
+    _controller.loadHandover(userId, workDate);
     _cashController.addListener(_recalc);
   }
 
   void _recalc() {
     final double actual = double.tryParse(_cashController.text) ?? 0;
-    _difference = actual - 8500000;
+    final systemCash = double.tryParse(
+          _controller.handover?.systemCash.replaceAll('đ', '').replaceAll('.', '') ?? '0',
+        ) ??
+        0;
+    _difference = actual - systemCash;
     setState(() {});
   }
 
@@ -60,21 +69,34 @@ class _ShiftHandoverScreenState extends State<ShiftHandoverScreen> {
       ),
     );
     if (confirmed == true && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Đã ký xác nhận bàn giao')));
+      final user = AuthController().currentUser;
+      final actualCash = double.tryParse(_cashController.text) ?? 0;
+      final reason = _difference != 0 ? _reasonController.text : null;
+
+      await _controller.signHandover(
+        userId: user?.id ?? '',
+        workDate: DateTime.now().toIso8601String().substring(0, 10),
+        actualCash: actualCash,
+        reason: reason,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Đã ký xác nhận bàn giao')));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final handover = _controller.handover;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _controller,
           builder: (_, __) {
+            final handover = _controller.handover;
             return Column(
               children: [
                 const AppHeader(),

@@ -86,14 +86,14 @@ class HomeScreen extends StatelessWidget {
 
   String _getRoleLabel(String role) {
     switch (role) {
-      case 'SystemAdmin': return 'Quản trị hệ thống';
-      case 'ChainManager': return 'Quản lý chuỗi';
-      case 'BranchManager': return 'Quản lý chi nhánh';
-      case 'PurchasingManager': return 'Quản lý mua hàng';
-      case 'Pharmacist': return 'Dược sĩ';
-      case 'Cashier': return 'Thu ngân';
-      case 'WarehouseStaff': return 'Nhân viên kho';
-      case 'HrAdmin': return 'Nhân sự / Admin';
+      case 'system_admin': return 'Quản trị hệ thống';
+      case 'chain_manager': return 'Quản lý chuỗi';
+      case 'branch_manager': return 'Quản lý chi nhánh';
+      case 'purchasing_manager': return 'Quản lý mua hàng';
+      case 'pharmacist': return 'Dược sĩ';
+      case 'cashier': return 'Thu ngân';
+      case 'warehouse_staff': return 'Nhân viên kho';
+      case 'hr_admin': return 'Nhân sự / Admin';
       default: return 'Nhân viên';
     }
   }

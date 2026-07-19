@@ -4,6 +4,7 @@ import '../../../app/app_routes.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/loading_view.dart';
+import '../../auth/controllers/auth_controller.dart';
 import '../controllers/inventory_controller.dart';
 import '../widgets/inventory_summary_card.dart';
 import '../widgets/warehouse_alert_card.dart';
@@ -21,7 +22,8 @@ class _WarehouseAlertScreenState extends State<WarehouseAlertScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = InventoryController();
+    final branchId = AuthController().currentUser?.branchId ?? '';
+    _controller = InventoryController(branchId: branchId);
     _controller.loadWarehouseAlerts();
   }
 
