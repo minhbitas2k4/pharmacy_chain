@@ -19,7 +19,7 @@ import '../features/system_config/screens/system_config_screen.dart';
 import '../features/notifications/screens/maintenance_notice_screen.dart';
 import '../features/pricing_policy/screens/pricing_policy_screen.dart';
 import '../features/drugs/screens/drug_catalog_screen.dart';
-import '../features/drugs/screens/drug_lookup_screen.dart';
+import '../features/pharmacist/screens/pharmacist_drug_lookup_screen.dart';
 import '../features/pos/screens/pos_screen.dart';
 import '../features/pos/models/cart_item_model.dart';
 import '../features/payment/screens/payment_screen.dart';
@@ -94,8 +94,6 @@ class AppRoutes {
     ],
     AppRoles.pharmacist: [
       drugLookup,
-      pos,
-      drugs,
     ],
     AppRoles.cashier: [
       pos,
@@ -147,7 +145,7 @@ class AppRoutes {
     notifications: (_) => const MaintenanceNoticeScreen(),
     pricingPolicy: (_) => const PricingPolicyScreen(),
     drugCatalog: (_) => const DrugCatalogScreen(),
-    drugLookup: (_) => const DrugLookupScreen(),
+    drugLookup: (_) => const PharmacistDrugLookupScreen(),
     drugs: (_) => const DrugCatalogScreen(),
     branch: (_) => const BranchScreen(),
     branches: (_) => const BranchScreen(),
